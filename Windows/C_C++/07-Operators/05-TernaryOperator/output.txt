@@ -1,0 +1,8 @@
+
+
+Ternary operator answer 1 : A and 7
+
+Ternary operator answer 2 : Q and 30
+
+
+

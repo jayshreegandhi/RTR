@@ -1,0 +1,20 @@
+
+
+Going on to next line using \n escape sequence
+
+Demonstrating 	 horizontal 	 tab 	 using 	 \t escape sequence 
+
+"This is a double quoted output" done using \" \" escape sequence
+
+'This is a single quoted output' done using \' \' escape sequence
+
+Backspace turned to backspace using escape sequence \b
+
+ Demonstrating carriage return using \r escape sequence
+Demonstrating  carriage return using \r escape sequence
+Demonstrating carriage  return using \r escape sequence
+
+Demonstrating A using \xhh escape sequence
+
+Demonstrating B using \ooo escape sequence
+

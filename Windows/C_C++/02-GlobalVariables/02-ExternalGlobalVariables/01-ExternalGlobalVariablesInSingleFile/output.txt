@@ -1,0 +1,3 @@
+
+Global count = 0
+Global count = 1

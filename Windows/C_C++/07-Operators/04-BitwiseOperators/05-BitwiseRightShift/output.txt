@@ -1,0 +1,28 @@
+
+
+Enter a integer : 5
+
+Enter another integer : 3
+
+By how many bits do you want to shift A = 5 to the right ? : 2
+
+By how many bits do you want to shift B = 3 to the right ? : 1
+
+Bitwise RIGHT-SHIFT by 2 bits of  
+A = 5 (Decimal), 5 (Octal), 5 (Hexadecimal) 
+gives the result = 1 (Decimal), 1 (Octal), 1 (Hexadecimal)
+
+the binary form of the decimal integer 5 is 	=	00000101
+
+the binary form of the decimal integer 1 is 	=	00000001
+
+
+
+Bitwise RIGHT-SHIFT by 1 bits of  
+B = 3 (Decimal), 3 (Octal), 3 (Hexadecimal) 
+gives the result = 1 (Decimal), 1 (Octal), 1 (Hexadecimal)
+
+the binary form of the decimal integer 3 is 	=	00000011
+
+the binary form of the decimal integer 1 is 	=	00000001
+

@@ -1,0 +1,17 @@
+
+
+Enter a integer : 3
+
+Enter another integer : 5
+
+Bitwise OR-ing of 
+A = 3 (Decimal), 3 (Octal), 3 (Hexadecimal) and 
+B = 5 (Decimal), 5 (Octal), 5 (Hexadecimal) 
+gives the result = 7 (Decimal), 7 (Octal), 7 (Hexadecimal)
+
+the binary form of the decimal integer 3 is 	=	00000011
+
+the binary form of the decimal integer 5 is 	=	00000101
+
+the binary form of the decimal integer 7 is 	=	00000111
+

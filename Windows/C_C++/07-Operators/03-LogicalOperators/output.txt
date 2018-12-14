@@ -1,0 +1,26 @@
+
+
+Enter First Integer : 8
+
+Enter Second Integer : 2
+
+Enter Third Integer : 5
+
+If answer = 0,it is 'FALSE'
+If answer = 1,it is 'TRUE'
+LOGICAL AND(&&) : answer is TRUE(1) if and only if both conditions are True. The answer is FALSE(0) if any one or both conditions are False
+
+A = 8 is less than or equal to B = 2 AND B = 2 is not equal to C = 5 	 Answer = 0
+
+LOGICAL OR(||) : answer is FALSE(0) if and only if both conditions are False. The answer is TRUE(1) if any one or both conditions are True
+
+Either B = 2 is greater than or equal to A = 8 OR A = 8 is equal to C = 5 	 Answer = 0
+
+A = 8 and using LOGICAL NOT(!) operator on A gives result = 0
+
+B = 2 and using LOGICAL NOT(!) operator on B gives result = 0
+
+C = 5 and using LOGICAL NOT(!) operator on C gives result = 0
+
+Using LOGICAL NOT(!) on (a <= b) and also (b != c) and then AND-ing them afterwards gives result = 0
+Using LOGICAL NOT(!) on entire logical expression (b >= a) || (a == c) gives result = 1

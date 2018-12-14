@@ -1,0 +1,17 @@
+
+
+Enter a integer : 5
+
+Enter another integer : 8
+
+Bitwise XOR-ing of 
+A = 5 (Decimal), 5 (Octal), 5 (Hexadecimal) and 
+B = 8 (Decimal), 10 (Octal), 8 (Hexadecimal) 
+gives the result = 13 (Decimal), 15 (Octal), D (Hexadecimal)
+
+the binary form of the decimal integer 5 is 	=	00000101
+
+the binary form of the decimal integer 8 is 	=	00001000
+
+the binary form of the decimal integer 13 is 	=	00001101
+

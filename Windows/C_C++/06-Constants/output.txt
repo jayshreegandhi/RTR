@@ -1,0 +1,43 @@
+
+
+Local constant epsilon = 0.000001
+
+Sunday is day number = 0
+Monday is day number = 1
+Tuesday is day number = 2
+Wednesday is day number = 3
+Thursday is day number = 4
+Friday is day number = 5
+Saturday is day number = 6
+
+One is enum number = 0
+Two is enum number = 1
+Three is enum number = 2
+Four is enum number = 3
+Five is enum number = 5
+Six is enum number = 6
+Seven is enum number = 7
+Eight is enum number = 8
+Nine is enum number = 9
+Ten is enum number = 10
+
+January is month number = 1
+February is month number = 2
+March is month number = 3
+April is month number = 4
+May is month number = 5
+June is month number = 6
+July is month number = 7
+August is month number = 8
+September is month number = 9
+October is month number = 10
+November is month number = 11
+December is month number = 12
+
+Value of TRUE is = 1
+Value of FALSE is = 0
+
+MY_PI macro value is =   3.141593
+
+Area of circle of radius 2 units = 12.566371
+
