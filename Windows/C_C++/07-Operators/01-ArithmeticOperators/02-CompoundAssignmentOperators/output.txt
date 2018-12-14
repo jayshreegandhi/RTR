@@ -1,0 +1,13 @@
+
+
+Enter a number : 9
+
+Enter another number : 3
+
+Addition of A = 9 and B = 3 gives 12
+Subtraction of A = 12 and B = 3 gives 9
+Multiplication of A = 9 and B = 3 gives 27
+Division of A = 27 and B = 3 gives quotient 9
+Division of A = 9 and B = 3 gives remainder 0
+
+

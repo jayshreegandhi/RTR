@@ -1,0 +1,14 @@
+
+
+enter one integer : 7
+
+enter another integer : 4
+
+If answer = 0 , it is 'FALSE' 
+if answer = 1 , it is 'TRUE' 
+(a < b) A = 7 is less than B = 4  	 Answer = 0
+(a > b) A = 7 is greater than B = 4  	 Answer = 1
+(a <= b) A = 7 is less than or equal to B = 4  	 Answer = 0
+(a >= b) A = 7 is greater than or equal to B = 4  	 Answer = 1
+(a == b) A = 7 is equal to B = 4  	 Answer = 0
+(a != b) A = 7 is not equal B = 4  	 Answer = 1

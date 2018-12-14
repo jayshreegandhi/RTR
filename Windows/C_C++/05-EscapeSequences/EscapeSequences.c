@@ -9,7 +9,7 @@ int main(void)
 	printf("\'This is a single quoted output\' done using \\\' \\\' escape sequence\n\n");
 	printf("Backspace turned to backspace\b using escape sequence \\b\n\n");
 
-	printf("\r demonstrating carriage return using \\r escape sequence\n");
+	printf("\r Demonstrating carriage return using \\r escape sequence\n");
 	printf("Demonstrating \r carriage return using \\r escape sequence\n");
 	printf("Demonstrating carriage \r return using \\r escape sequence\n\n");
 

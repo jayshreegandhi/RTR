@@ -1,0 +1,25 @@
+
+Hello World !
+
+Integer decimal value of 'A' = 13
+Integer octal value of 'A' = 15
+Integer hexadecimal value of 'A' (Hexadecimal letters in lower case) = d
+Integer hexadecimal value of 'A' (Hexadecimal letters in upper case) = D
+
+Character ch = P
+String str = Jayshree Gandhi
+
+Long integer = 30121995
+
+Unsigned integer 'b' = 7
+
+Floating point number with just %f 'f_num' = 3012.199463
+Floating point number with %4.2f 'f_num' = 3012.20
+Floating point number with %2,5f 'f_num' = 3012.19946
+
+Double precision floating point number without exponential = 3.14159
+Double precision floating point number with exponential (lower case) = 3.141593e+00
+Double precision floating point number with exponential (upper case) = 3.141593E+00
+
+Double hexadecimal value of 'd_pi' (hexadecimal letter in lower case) = 0x1.921fb54442d18p+1
+Double hexadecimal value of 'd_pi' (hexadecimal letter in upper case) = 0X1.921FB54442D18P+1

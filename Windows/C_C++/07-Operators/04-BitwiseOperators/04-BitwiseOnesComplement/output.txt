@@ -1,0 +1,23 @@
+
+
+Enter a integer : 6
+
+Enter another integer : 9
+
+Bitwise COMPLEMENT 
+A = 6 (Decimal), 6 (Octal), 6 (Hexadecimal) 
+gives the result = -7 (Decimal), 37777777771 (Octal), FFFFFFF9 (Hexadecimal)
+
+the binary form of the decimal integer 6 is 	=	00000110
+
+the binary form of the decimal integer -7 is 	=	11111001
+
+
+Bitwise COMPLEMENT 
+B = 9 (Decimal), 11 (Octal), 9 (Hexadecimal) 
+gives the result = -10 (Decimal), 37777777766 (Octal), FFFFFFF6 (Hexadecimal)
+
+the binary form of the decimal integer 9 is 	=	00001001
+
+the binary form of the decimal integer -10 is 	=	11110110
+

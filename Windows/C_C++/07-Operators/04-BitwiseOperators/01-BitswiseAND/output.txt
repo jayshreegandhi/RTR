@@ -1,0 +1,17 @@
+
+
+Enter a integer : 12
+
+Enter another integer : 42
+
+Bitwise AND-ing of 
+A = 12 (Decimal), 14 (Octal), C (Hexadecimal) and 
+B = 42 (Decimal), 52 (Octal), 2A (Hexadecimal) 
+gives the result = 8 (Decimal), 10 (Octal), 8 (Hexadecimal)
+
+the binary form of the decimal integer 12 is 	=	00001100
+
+the binary form of the decimal integer 42 is 	=	00101010
+
+the binary form of the decimal integer 8 is 	=	00001000
+

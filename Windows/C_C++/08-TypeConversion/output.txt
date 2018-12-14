@@ -1,0 +1,15 @@
+
+
+I = 70
+character 1 (after ch_1 = i) = F
+
+Character 2 = Q
+J (after j = ch_ 2) = 81
+
+Integer a = 5 and Floating-point number 7.800000 added gives floating-point sum =12.800000
+
+Integer a = 5 and Floating-point number 7.800000 added gives integer sum =12
+
+Floating point number type casted explicitly = 30.121996
+Resultant integer after explicit type casting of 30.121996 = 30
+

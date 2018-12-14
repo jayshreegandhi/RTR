@@ -1,0 +1,11 @@
+Enter a number: 4
+
+
+Enter another number: 5
+
+
+Addition of A = 4 and B = 5 gives 9
+Subtraction of A = 4 and B = 5 gives -1
+Multiplication of A = 4 and B = 5 gives 20
+Division of A = 4 and B = 5 gives quotient 0
+Division of A = 4 and B = 5 gives remainder 4
