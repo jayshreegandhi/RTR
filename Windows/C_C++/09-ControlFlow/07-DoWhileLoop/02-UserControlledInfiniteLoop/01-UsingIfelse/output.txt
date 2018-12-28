@@ -1,0 +1,14 @@
+
+once the infinite loop begins, enter 'Q' or 'q' to quit the infinite do while loop
+enter 'Y' or 'y' to initiate user controlled infinite do while loop
+
+in loop
+in loop
+in loop
+in loop
+in loop
+in loop
+in loop
+
+exitting user controlled infinite do while loop
+

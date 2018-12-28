@@ -1,0 +1,4 @@
+
+Enter month(1 to 12):10
+Month number 10 is October
+If-else if-else ladder complete

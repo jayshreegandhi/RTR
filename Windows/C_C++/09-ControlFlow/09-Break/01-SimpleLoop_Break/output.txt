@@ -1,0 +1,13 @@
+printing even numbers from 1 to 100 for every user input.Exitting the loop when user enters character 'Q' or 'q'
+enter character 'Q' or 'q' to exit loop
+	1
+	2
+	3
+	4
+	5
+	6
+	7
+	8
+	9
+
+exitting loop

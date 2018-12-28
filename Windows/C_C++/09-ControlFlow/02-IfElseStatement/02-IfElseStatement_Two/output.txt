@@ -1,0 +1,5 @@
+
+Enter age:20
+entering if-block
+You are eligilble for voting
+bye

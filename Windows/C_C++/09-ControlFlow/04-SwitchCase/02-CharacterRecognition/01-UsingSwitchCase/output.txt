@@ -1,0 +1,4 @@
+
+Enter Character:j
+Character 'j' entered by you is a CONSONANT
+Switch case block complete

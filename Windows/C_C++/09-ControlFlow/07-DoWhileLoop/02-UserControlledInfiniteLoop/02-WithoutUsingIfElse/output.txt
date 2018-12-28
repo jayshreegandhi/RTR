@@ -1,0 +1,25 @@
+
+once the infinite loop beging,enter 'Q' or 'q' tp quit the infinite do-while loop
+in loop
+
+in loop
+
+in loop
+
+in loop
+
+in loop
+
+in loop
+
+in loop
+
+in loop
+
+in loop
+
+in loop
+
+exitting user controlled infinite do-while loop
+
+do you want to begin user controlled infinite loop again?...(Y/y - yes,any other key - No):

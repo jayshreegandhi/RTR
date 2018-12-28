@@ -1,0 +1,43 @@
+outer loop prints odd numbers between 1 to 10
+inner loop prints even numbers between 1 to 10 for ever odd number printed by outer loop
+i = 1
+
+	j = 2
+	j = 4
+	j = 6
+	j = 8
+	j = 10
+
+i = 3
+
+	j = 2
+	j = 4
+	j = 6
+	j = 8
+	j = 10
+
+i = 5
+
+	j = 2
+	j = 4
+	j = 6
+	j = 8
+	j = 10
+
+i = 7
+
+	j = 2
+	j = 4
+	j = 6
+	j = 8
+	j = 10
+
+i = 9
+
+	j = 2
+	j = 4
+	j = 6
+	j = 8
+	j = 10
+
+

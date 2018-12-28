@@ -1,0 +1,4 @@
+
+if-block 1 : number exits and has value = 5
+if-block 2 : number exits and has value = -5
+all 3 if-statements are done

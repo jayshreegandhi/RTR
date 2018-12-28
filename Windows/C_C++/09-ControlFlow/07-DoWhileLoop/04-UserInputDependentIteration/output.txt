@@ -1,0 +1,15 @@
+enter an integer value from which iteration must begin:20
+how many digits do you want to print from 20 onwards?:10
+printing digits from 20 to 30:
+	20
+	21
+	22
+	23
+	24
+	25
+	26
+	27
+	28
+	29
+	30
+
