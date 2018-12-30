@@ -1,0 +1,12 @@
+
+enter an integer value from which iteration must begin:5
+how many digits do you want to print from 5 onwards? :5
+printing digits 5 to 10 :
+	5
+	6
+	7
+	8
+	9
+	10
+
+

@@ -1,0 +1,12 @@
+
+Enter Value for 'A' :20
+Enter Value for 'B' :10
+Enter option in character
+'A' or 'a' for addition
+'S' or 's' for subtraction
+'M' or 'm' for multiplication
+'D' or 'd' for division
+
+Enter option:a
+Addition of A = 20 and B = 10 gives Result 30
+switch-case block complete

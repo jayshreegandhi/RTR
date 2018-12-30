@@ -1,0 +1,4 @@
+
+Enter age:20
+You are eligible for voting
+You are not eligible for voting

@@ -1,0 +1,11 @@
+
+Enter Value for 'A' :20
+Enter Value for 'B' :10
+Enter option in character
+'A' or 'a' for addition
+'S' or 's' for subtraction
+'M' or 'm' for multiplication
+'D' or 'd' for division
+
+Enter option:Subtraction of B = 10 from A = 20 gives Result 10
+If-else if else ladder complete

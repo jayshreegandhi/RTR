@@ -1,0 +1,8 @@
+
+Entering first if-block
+Number 1 is less than number 2
+First if-else pair done
+
+Entering second else-block
+Number 2 is equal to number 3
+Second if-else pair done
