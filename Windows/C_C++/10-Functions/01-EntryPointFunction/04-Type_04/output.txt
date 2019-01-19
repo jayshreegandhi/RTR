@@ -1,0 +1,8 @@
+
+Hello World!
+Number of command line arguments = 3
+Command line arguments passed to this parameter are : 
+
+Command line argument number 1 = EntryPointFunction_Type04.exe
+Command line argument number 2 = Jayshree
+Command line argument number 3 = Gandhi

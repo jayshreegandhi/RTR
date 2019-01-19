@@ -1,0 +1,5 @@
+/*command given was :EntryPointFunction_CmdLineArgApplication.exe 1 2 3 Jayshree 4 5 >output.txt*/
+
+ Sum of all integer command line argument is :
+Sum = 15
+

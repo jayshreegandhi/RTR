@@ -1,0 +1,4 @@
+
+ enter integer value for 'X' :10
+ enter integer value for 'Y' :2
+Sum of 10 and 2 = 12

@@ -1,0 +1,4 @@
+
+ enter integer value for 'X' : 20
+ enter integer value for 'Y' :10
+Sum = 30

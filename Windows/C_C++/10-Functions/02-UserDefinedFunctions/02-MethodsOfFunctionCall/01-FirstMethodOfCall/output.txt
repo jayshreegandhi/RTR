@@ -1,0 +1,16 @@
+
+Enter integer value for 'X' for Addition :10
+Enter integer value for 'Y' for Addition:20
+Sum of 10 and 20 = 30
+
+Enter integer value for 'X' for Subtraction :20
+Enter integer value for 'Y' for Subtraction :10
+Subtraction result = 10
+
+Enter integer value for 'X' for Multiplication :5
+Enter integer value for 'Y' for Multiplication :4
+Multiplication of 5 and 4 = 20
+
+Enter integer value for 'X' for Division :20
+Enter integer value for 'Y' for Division :5
+Division of 20 and 5 = 4 (quotient)

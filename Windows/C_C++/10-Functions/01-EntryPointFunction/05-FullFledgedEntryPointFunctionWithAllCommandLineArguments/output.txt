@@ -1,0 +1,32 @@
+
+Hello World!
+Number of command line arguments = 3
+
+Command line arguments passed to program are :
+
+Command line argument number 1 = EntryPointFunction_Type05.exe
+Command line argument number 2 = Jayshree
+Command line argument number 3 = Gandhi
+
+First 20 enviornment variables passed to this program are :
+Command line argument number 1 = ALLUSERSPROFILE=C:\ProgramData
+Command line argument number 2 = APPDATA=C:\Users\Jayshree\AppData\Roaming
+Command line argument number 3 = CommandPromptType=Native
+Command line argument number 4 = CommonProgramFiles=C:\Program Files (x86)\Common Files
+Command line argument number 5 = CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+Command line argument number 6 = CommonProgramW6432=C:\Program Files\Common Files
+Command line argument number 7 = COMPUTERNAME=LAPTOP-J18L8787
+Command line argument number 8 = ComSpec=C:\WINDOWS\system32\cmd.exe
+Command line argument number 9 = DevEnvDir=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\
+Command line argument number 10 = DriverData=C:\Windows\System32\Drivers\DriverData
+Command line argument number 11 = ExtensionSdkDir=C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs
+Command line argument number 12 = FPS_BROWSER_APP_PROFILE_STRING=Internet Explorer
+Command line argument number 13 = FPS_BROWSER_USER_PROFILE_STRING=Default
+Command line argument number 14 = Framework40Version=v4.0
+Command line argument number 15 = FrameworkDir=C:\Windows\Microsoft.NET\Framework\
+Command line argument number 16 = FrameworkDir32=C:\Windows\Microsoft.NET\Framework\
+Command line argument number 17 = FrameworkVersion=v4.0.30319
+Command line argument number 18 = FrameworkVersion32=v4.0.30319
+Command line argument number 19 = HOMEDRIVE=C:
+Command line argument number 20 = HOMEPATH=\Users\Jayshree
+

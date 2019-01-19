@@ -1,0 +1,4 @@
+
+ enter integer value for 'X' :5
+ enter integer value for 'Y' :20
+ sum of 5 and 20 = 25
