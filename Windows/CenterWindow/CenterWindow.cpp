@@ -12,7 +12,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	HWND hwnd;
 	MSG msg;
 	TCHAR szAppName[] = TEXT("MY WINDOW");
-	
+
+	MONITORINFO mi = { sizeof(MONITORINFO) };
+	POINT pt;
+	pt.x = 1;
+	pt.y = 1;
+
 	wndclass.cbSize = sizeof(WNDCLASSEX);
 	wndclass.style = CS_HREDRAW | CS_VREDRAW;
 	wndclass.cbClsExtra = 0;
@@ -28,14 +33,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	RegisterClassEx(&wndclass);
 	
+	GetMonitorInfo(MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY), &mi);
 		
 	hwnd = CreateWindow(szAppName,
 		TEXT("My Window - Jayshree"),
 		WS_OVERLAPPEDWINDOW,
-		0,
-		0,
-		0,
-		0,
+		(mi.rcMonitor.right) / 2 - (WIN_WIDTH / 2),
+		(mi.rcMonitor.bottom) / 2 - (WIN_HEIGHT / 2),
+		WIN_WIDTH,
+		WIN_HEIGHT,
 		NULL,
 		NULL,
 		hInstance,
@@ -58,21 +64,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-	MONITORINFO mi = { sizeof(MONITORINFO) };
-
 	switch (iMsg)
 	{
-		
-	case WM_SIZE:
-		GetMonitorInfo(MonitorFromWindow(ghWnd, MONITORINFOF_PRIMARY), &mi);
-		SetWindowPos(ghWnd,
-			HWND_TOP,
-			(mi.rcMonitor.right)/ 2 -( WIN_WIDTH / 2),
-			(mi.rcMonitor.bottom) / 2- (WIN_HEIGHT / 2),
-			WIN_WIDTH,
-			WIN_HEIGHT,
-			SWP_NOZORDER | SWP_FRAMECHANGED);
-		break;
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
