@@ -1,0 +1,1 @@
+Passing macro as size of array is possible
