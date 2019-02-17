@@ -1,0 +1,54 @@
+
+In-Line Initialization And Piece-meal Display of Elements of Array 'iArray[]' : 
+
+iArray[0] (1st Element) - 1
+iArray[1] (2nd Element) - 2
+iArray[2] (3rd Element) - 3
+iArray[3] (4th Element) - 4
+iArray[4] (5th Element) - 5
+iArray[5] (6th Element) - 6
+iArray[6] (7th Element) - 7
+iArray[7] (8th Element) - 8
+iArray[8] (9th Element) - 9
+iArray[9] (10th Element) - 10
+Size of Data type 'int' = 4 bytes 
+Number of elements in 'int' Array 'iArray[]' = 10 Elements
+Size of Array 'iArray' (10 elements * 4 bytes) = 40 bytes
+
+
+In-Line Initialization And Piece-meal Display of Elements of Array 'fArray[]' : 
+
+fArray[0] (1st Element) - 1.200000
+fArray[1] (2nd Element) - 2.300000
+fArray[2] (3rd Element) - 3.400000
+fArray[3] (4th Element) - 4.500000
+fArray[4] (5th Element) - 5.600000
+fArray[5] (6th Element) - 6.700000
+fArray[6] (7th Element) - 7.800000
+fArray[7] (8th Element) - 8.900000
+fArray[8] (9th Element) - 227982458880.000000
+fArray[9] (10th Element) - 789.207947
+Size of data type 'float' = 4 bytes
+Number of elements in 'float' array 'fArray[]' = 8 elements
+Size of Array 'fArray' (8 elements * 4 bytes) = 32 bytes
+
+
+In-Line Initialization And Piece-meal Display of Elements of Array 'cArray[]' : 
+
+cArray[0] (1st Element) - A
+cArray[1] (2nd Element) - S
+cArray[2] (3rd Element) - T
+cArray[3] (4th Element) - R
+cArray[4] (5th Element) - O
+cArray[5] (6th Element) - M
+cArray[6] (7th Element) - E
+cArray[7] (8th Element) - D
+cArray[8] (9th Element) - I
+cArray[9] (10th Element) - C
+cArray[10] (11th Element) - O
+cArray[11] (12th Element) - M
+cArray[12] (13th Element) - P
+Size of data type 'char' = 1 bytes
+Number of elements in 'char' array 'cArray[]' = 13 elements
+Size of Array 'cArray' (13 elements * 1 bytes) = 13 bytes
+

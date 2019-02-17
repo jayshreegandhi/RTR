@@ -1,0 +1,55 @@
+
+In-line Initialization and loop(for) display of elements of array 'iArray[]' :
+iArray[0] (Element 1) =  1
+iArray[1] (Element 2) =  2
+iArray[2] (Element 3) =  3
+iArray[3] (Element 4) =  4
+iArray[4] (Element 5) =  5
+iArray[5] (Element 6) =  6
+iArray[6] (Element 7) =  7
+iArray[7] (Element 8) =  8
+iArray[8] (Element 9) =  9
+iArray[9] (Element 10) =  10
+
+
+Size of Data type 'int' = 4 bytes 
+Number of elements in 'int' Array 'iArray[]' = 10 Elements
+Size of Array 'iArray' (10 elements * 4 bytes) = 40 bytes
+
+
+In-line Initialization and loop(while) display of elements of array 'fArray[]' :
+fArray[0] (Element 1) =  1.200000
+fArray[1] (Element 2) =  2.300000
+fArray[2] (Element 3) =  3.400000
+fArray[3] (Element 4) =  4.500000
+fArray[4] (Element 5) =  5.600000
+fArray[5] (Element 6) =  6.700000
+fArray[6] (Element 7) =  7.800000
+fArray[7] (Element 8) =  8.900000
+
+
+Size of Data type 'float' = 4 bytes 
+Number of elements in 'float' Array 'fArray[]' = 8 Elements
+Size of Array 'fArray' (8 elements * 4 bytes) = 32 bytes
+
+
+In-line Initialization and loop(do-while) display of elements of array 'cArray[]' :
+cArray[0] (Element 1) =  A
+cArray[1] (Element 2) =  S
+cArray[2] (Element 3) =  T
+cArray[3] (Element 4) =  R
+cArray[4] (Element 5) =  O
+cArray[5] (Element 6) =  M
+cArray[6] (Element 7) =  E
+cArray[7] (Element 8) =  D
+cArray[8] (Element 9) =  I
+cArray[9] (Element 10) =  C
+cArray[10] (Element 11) =  O
+cArray[11] (Element 12) =  M
+cArray[12] (Element 13) =  P
+
+
+Size of Data type 'char' = 1 bytes 
+Number of elements in 'char' Array 'cArray[]' = 13 Elements
+Size of Array 'cArray' (13 elements * 1 bytes) = 13 bytes
+

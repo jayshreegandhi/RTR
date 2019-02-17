@@ -1,0 +1,37 @@
+
+Piece-meal (Hard - coded) assignment and display of elements of array 'iArrayOne[]' : 
+iArrayOne[0] (1st element) = 1
+iArrayOne[1] (2nd element) = 2
+iArrayOne[2] (3rd element) = 3
+iArrayOne[3] (4th element) = 4
+iArrayOne[4] (5th element) = 5
+iArrayOne[5] (6th element) = 6
+iArrayOne[6] (7th element) = 7
+iArrayOne[7] (8th element) = 8
+iArrayOne[8] (9th element) = 9
+iArrayOne[9] (10th element) = 10
+
+
+Enter 1st element of array 'iArrayTwo[]' :11
+Enter 2nd element of array 'iArrayTwo[]' : 12
+Enter 3rd element of array 'iArrayTwo[]' :13
+Enter 4th element of array 'iArrayTwo[]' :14
+Enter 5th element of array 'iArrayTwo[]' :15
+Enter 6th element of array 'iArrayTwo[]' :16
+Enter 7th element of array 'iArrayTwo[]' :17
+Enter 8th element of array 'iArrayTwo[]' :18
+Enter 9th element of array 'iArrayTwo[]' :19
+Enter 10th element of array 'iArrayTwo[]' :20
+ 
+Piece-meal(user input) assignment and display of elements to array 'iArrayTwo[]' : 
+
+iArrayTwo[0] (1st element) = 11
+iArrayTwo[1] (2nd element) = 12
+iArrayTwo[2] (3rd element) = 13
+iArrayTwo[3] (4th element) = 14
+iArrayTwo[4] (5th element) = 15
+iArrayTwo[5] (6th element) = 16
+iArrayTwo[6] (7th element) = 17
+iArrayTwo[7] (8th element) = 18
+iArrayTwo[8] (9th element) = 19
+iArrayTwo[9] (10th element) = 20
