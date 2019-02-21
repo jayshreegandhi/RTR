@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColouredTriangleRectangle", "ColouredTriangleRectangle.vcxproj", "{370B6D96-BEE3-4E75-BFCF-DA224838101F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Debug|x64.ActiveCfg = Debug|x64
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Debug|x64.Build.0 = Debug|x64
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Debug|x86.ActiveCfg = Debug|Win32
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Debug|x86.Build.0 = Debug|Win32
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Release|x64.ActiveCfg = Release|x64
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Release|x64.Build.0 = Release|x64
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Release|x86.ActiveCfg = Release|Win32
+		{370B6D96-BEE3-4E75-BFCF-DA224838101F}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {95B32526-4DCB-436B-A2E8-4404BC3CFC74}
+	EndGlobalSection
+EndGlobal

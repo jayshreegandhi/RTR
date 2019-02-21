@@ -1,8 +1,10 @@
 #include<windows.h>
 #include<gl/GL.h>
+#include<gl/GLU.h>
 #include<stdio.h>
 
 #pragma comment(lib,"opengl32.lib")
+#pragma comment(lib,"glu32.lib")
 
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
@@ -28,6 +30,7 @@ void DrawXAxis(void);
 void DrawYAxis(void);
 void DrawVerticalLines(void);
 void DrawHorizontalLines(void);
+void DrawRectangle(void);
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
@@ -275,7 +278,9 @@ int initialize(void)
 		return(-4);
 	}
 
-	glClearColor(0.764f, 0.956f, 0.803f, 0.0f);
+	//glClearColor(0.764f, 0.956f, 0.803f, 0.0f);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
 
@@ -284,20 +289,37 @@ int initialize(void)
 
 void resize(int width, int height)
 {
+	if (height == 0)
+	{
+		height = 1;
+	}
+
 	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	gluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 }
 
 
 void display(void)
 {
+	
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
+	glTranslatef(0.0f, 0.0f, -3.0f);
+
+	DrawRectangle();
+
 	DrawHorizontalLines();
+	
 	DrawVerticalLines();
+	
 	DrawXAxis();
+	
 	DrawYAxis();
 
 	SwapBuffers(ghdc);
@@ -365,7 +387,7 @@ void DrawVerticalLines(void)
 	glEnd();
 
 	glBegin(GL_LINES);
-	while (verticalLineCounter > -1.0f)
+	while (verticalLineCounter > -1.05f)
 	{
 		glColor3f(0.121f, 0.839f, 0.223f);
 		glVertex3f(verticalLineCounter, -1.0f, 0.0f);
@@ -393,7 +415,7 @@ void DrawHorizontalLines(void)
 	glEnd();
 
 	glBegin(GL_LINES);
-	while (horizontalLineCounter > -1.0f)
+	while (horizontalLineCounter > -1.05f)
 	{
 		glColor3f(0.121f, 0.839f, 0.223f);
 		glVertex3f(-1.0f, horizontalLineCounter, 0.0f);
@@ -426,4 +448,17 @@ void DrawYAxis(void)
 	glVertex3f(0.0f, 1.0f, 0.0f);
 	glEnd();
 
+}
+
+void DrawRectangle(void)
+{
+	glBegin(GL_QUADS);
+	glColor3f(0.764f, 0.956f, 0.803f);
+	
+	glVertex3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(-1.0f, 1.0f, 0.0f);
+	glVertex3f(-1.0f, -1.0f, 0.0f);
+	glVertex3f(1.0f, -1.0f, 0.0f);
+
+	glEnd();
 }

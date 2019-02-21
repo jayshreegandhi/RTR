@@ -1,8 +1,10 @@
 #include<windows.h>
 #include<gl/GL.h>
+#include<gl/GLU.h>
 #include<stdio.h>
 
 #pragma comment(lib,"opengl32.lib")
+#pragma comment(lib,"glu32.lib")
 
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
@@ -279,7 +281,16 @@ int initialize(void)
 
 void resize(int width, int height)
 {
+	if (height == 1)
+	{
+		height = 0;
+	}
+
 	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	gluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 }
 
 void display(void)
@@ -292,6 +303,8 @@ void display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
+	glTranslatef(0.0f, 0.0f, -3.0f);
+	
 	//single line
 	glLineWidth(3.0f);
 	glBegin(GL_LINES);
