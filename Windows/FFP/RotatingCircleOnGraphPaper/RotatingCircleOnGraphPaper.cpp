@@ -1,6 +1,7 @@
 #include<windows.h>
 #include<gl/GL.h>
 #include<gl/GLU.h>
+#include<math.h>
 #include<stdio.h>
 
 #pragma comment(lib,"opengl32.lib")
@@ -8,6 +9,8 @@
 
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
+#define NUMPOINTS 1000
+const float PI = 3.1415f;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -31,8 +34,7 @@ void DrawYAxis(void);
 void DrawVerticalLines(void);
 void DrawHorizontalLines(void);
 void DrawBackgroundRectangle(void);
-void DrawTriangle(void);
-void DrawRectangle(void);
+void DrawCircle(void);
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
@@ -280,6 +282,8 @@ int initialize(void)
 		return(-4);
 	}
 
+	//glClearColor(0.764f, 0.956f, 0.803f, 0.0f);
+
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
@@ -304,18 +308,28 @@ void resize(int width, int height)
 
 void display(void)
 {
-	
+	static float rotationAngle = 0.0f;
+
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslatef(0.0f, 0.0f, -3.0f);
 
 	DrawBackgroundRectangle();
 	DrawHorizontalLines();
 	DrawVerticalLines();
 	DrawXAxis();
 	DrawYAxis();
-	DrawTriangle();
-	DrawRectangle();
 
+	
+	glRotatef(rotationAngle, 1.0f, 0.0f, 0.0f);
+	glTranslatef(0.0f, -2.0f, -6.0f);
+	DrawCircle();
+	
 	SwapBuffers(ghdc);
+
+	rotationAngle = rotationAngle + 0.1f;
 }
 
 void uninitialize(void)
@@ -367,10 +381,6 @@ void DrawVerticalLines(void)
 {
 	float verticalLineCounter = 0.0f;
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f);
-
 	// multiple vertical lines
 	glLineWidth(1.0f);
 	glBegin(GL_LINES);
@@ -399,10 +409,6 @@ void DrawHorizontalLines(void)
 {
 	float horizontalLineCounter = 0.0f;
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f);
-
 	// multiple horizontal lines
 	glLineWidth(1.0f);
 	glBegin(GL_LINES);
@@ -430,10 +436,6 @@ void DrawHorizontalLines(void)
 
 void DrawXAxis(void)
 {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f);
-
 	//single  horizontal line i.e X axis
 	glLineWidth(3.0f);
 	glBegin(GL_LINES);
@@ -445,10 +447,6 @@ void DrawXAxis(void)
 
 void DrawYAxis(void)
 {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f);
-
 	//single vertical line i.e Y axis
 	glLineWidth(3.0f);
 	glBegin(GL_LINES);
@@ -461,10 +459,6 @@ void DrawYAxis(void)
 
 void DrawBackgroundRectangle(void)
 {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f);
-
 	glBegin(GL_QUADS);
 	glColor3f(0.764f, 0.956f, 0.803f);
 
@@ -476,45 +470,14 @@ void DrawBackgroundRectangle(void)
 	glEnd();
 }
 
-void DrawTriangle(void)
+void DrawCircle(void)
 {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(-1.5f, 0.0f, -8.0f);
-
-	glBegin(GL_LINES);
+	glBegin(GL_LINE_LOOP);
 	glColor3f(1.0f, 0.0f, 1.0f);
-	glVertex3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f);
-
-	glVertex3f(1.0f, -1.0f, 0.0f);
-	glVertex3f(0.0f, 1.0f, 0.0f);
-
-	glEnd();
-}
-
-void DrawRectangle(void)
-{
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(1.5f, 0.0f, -8.0f);
-
-	glBegin(GL_LINES);
-	glColor3f(1.0f, 0.5f, 0.5f);
-	glVertex3f(1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, 1.0f, 0.0f);
-
-	glVertex3f(-1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f);
-
-	glVertex3f(1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, 1.0f, 0.0f);
-
+	for (int i = 0; i < NUMPOINTS; i++)
+	{
+		GLfloat angle = (2.0f * PI * i) / NUMPOINTS;
+		glVertex3f((GLfloat)cos(angle), (GLfloat)sin(angle), 0.0f);
+	}
 	glEnd();
 }

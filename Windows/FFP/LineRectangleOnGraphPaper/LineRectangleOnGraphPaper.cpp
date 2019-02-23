@@ -335,7 +335,7 @@ void display(void)
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -6.0f);
+	glTranslatef(0.0f, 0.0f, -3.0f);
 	DrawRectangle();
 
 	SwapBuffers(ghdc);
@@ -483,17 +483,17 @@ void DrawRectangle(void)
 {
 	glBegin(GL_LINES);
 	glColor3f(1.0f, 0.5f, 0.5f);
-	glVertex3f(1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, 1.0f, 0.0f);
+	glVertex3f(0.5f, 0.5f, 0.0f);
+	glVertex3f(-0.5f, 0.5f, 0.0f);
 
-	glVertex3f(-1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, -1.0f, 0.0f);
+	glVertex3f(-0.5f, 0.5f, 0.0f);
+	glVertex3f(-0.5f, -0.5f, 0.0f);
 
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f);
+	glVertex3f(-0.5f, -0.5f, 0.0f);
+	glVertex3f(0.5f, -0.5f, 0.0f);
 
-	glVertex3f(1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, 1.0f, 0.0f);
+	glVertex3f(0.5f, -0.5f, 0.0f);
+	glVertex3f(0.5f, 0.5f, 0.0f);
 
 	glEnd();
 }
