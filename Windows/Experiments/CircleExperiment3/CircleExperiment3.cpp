@@ -29,11 +29,6 @@ void resize(int, int);
 void display(void);
 void uninitialize(void);
 
-void DrawXAxis(void);
-void DrawYAxis(void);
-void DrawVerticalLines(void);
-void DrawHorizontalLines(void);
-void DrawBackgroundRectangle(void);
 void DrawCircle(void);
 
 
@@ -310,23 +305,20 @@ void display(void)
 {
 	static float trasnlation = -2.0f;
 	static float rotationAngle = 0.0f;
-	
+
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f);
+	glTranslatef(0.0f, 0.0f, -6.0f);
 
-	DrawBackgroundRectangle();
-	DrawHorizontalLines();
-	DrawVerticalLines();
-	DrawXAxis();
-	DrawYAxis();
-
-	glTranslatef(0.0f, trasnlation, -6.0f);
-	glRotatef(rotationAngle, 1.0f, 0.0f, 0.0f);
-	DrawCircle();
+	for (float translation = -2.0f; translation < -1.0f; translation = translation + 0.1f)
+	{
+		glTranslatef(0.0f, translation, -6.0f);
+		glRotatef(rotationAngle, 1.0f, 0.0f, 0.0f);
+		DrawCircle();
+	}
 
 	SwapBuffers(ghdc);
 
@@ -379,104 +371,10 @@ void uninitialize(void)
 	}
 }
 
-
-void DrawVerticalLines(void)
-{
-	float verticalLineCounter = 0.0f;
-
-	// multiple vertical lines
-	glLineWidth(1.0f);
-	glBegin(GL_LINES);
-	while (verticalLineCounter < 1.0f)
-	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(verticalLineCounter, -1.0f, 0.0f);
-		glVertex3f(verticalLineCounter, 1.0f, 0.0f);
-		verticalLineCounter = verticalLineCounter + 0.05f;
-	}
-	glEnd();
-
-	glBegin(GL_LINES);
-	while (verticalLineCounter > -1.05f)
-	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(verticalLineCounter, -1.0f, 0.0f);
-		glVertex3f(verticalLineCounter, 1.0f, 0.0f);
-		verticalLineCounter = verticalLineCounter - 0.05f;
-	}
-	glEnd();
-
-}
-
-void DrawHorizontalLines(void)
-{
-	float horizontalLineCounter = 0.0f;
-
-	// multiple horizontal lines
-	glLineWidth(1.0f);
-	glBegin(GL_LINES);
-	while (horizontalLineCounter < 1.0f)
-	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(-1.0f, horizontalLineCounter, 0.0f);
-		glVertex3f(1.0f, horizontalLineCounter, 0.0f);
-		horizontalLineCounter = horizontalLineCounter + 0.05f;
-	}
-	glEnd();
-
-	glBegin(GL_LINES);
-	while (horizontalLineCounter > -1.05f)
-	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(-1.0f, horizontalLineCounter, 0.0f);
-		glVertex3f(1.0f, horizontalLineCounter, 0.0f);
-		horizontalLineCounter = horizontalLineCounter - 0.05f;
-	}
-	glEnd();
-
-
-}
-
-void DrawXAxis(void)
-{
-	//single  horizontal line i.e X axis
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, 0.0f, 0.0f);
-	glVertex3f(1.0f, 0.0f, 0.0f);
-	glEnd();
-}
-
-void DrawYAxis(void)
-{
-	//single vertical line i.e Y axis
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(0.0f, -1.0f, 0.0f);
-	glVertex3f(0.0f, 1.0f, 0.0f);
-	glEnd();
-
-}
-
-void DrawBackgroundRectangle(void)
-{
-	glBegin(GL_QUADS);
-	glColor3f(0.764f, 0.956f, 0.803f);
-
-	glVertex3f(1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f);
-
-	glEnd();
-}
-
 void DrawCircle(void)
 {
 	glBegin(GL_LINE_LOOP);
-	glColor3f(1.0f, 0.0f, 1.0f);
+	glColor3f(0.0f, 0.0f, 1.0f);
 	for (int i = 0; i < NUMPOINTS; i++)
 	{
 		GLfloat angle = (2.0f * PI * i) / NUMPOINTS;

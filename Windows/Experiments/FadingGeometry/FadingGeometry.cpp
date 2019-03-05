@@ -1,7 +1,6 @@
 #include<windows.h>
 #include<gl/GL.h>
 #include<gl/GLU.h>
-#include<math.h>
 #include<stdio.h>
 
 #pragma comment(lib,"opengl32.lib")
@@ -9,8 +8,6 @@
 
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
-#define NUMPOINTS 1000
-const float PI = 3.1415f;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -23,19 +20,17 @@ HGLRC ghrc = NULL;
 bool gbActiveWindow = false;
 FILE *gpFile = NULL;
 
+float gFadingInColorFactor = 0.0f;
+float gFadingOutColorFactor = 1.0f;
+
 void ToggleFullScreen(void);
 int initialize(void);
 void resize(int, int);
 void display(void);
 void uninitialize(void);
 
-void DrawXAxis(void);
-void DrawYAxis(void);
-void DrawVerticalLines(void);
-void DrawHorizontalLines(void);
-void DrawBackgroundRectangle(void);
-void DrawCircle(void);
-
+void FadingInTriangle(void);
+void FadingOutTriangle(void);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -64,7 +59,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	wndclass.hInstance = hInstance;
 	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	wndclass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndclass.lpszClassName = szAppName;
 	wndclass.lpszMenuName = NULL;
 	wndclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
@@ -137,6 +132,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			{
 				//code
 				//here call update
+				//if (gFadingColorFactor == 0.0f)
+				//{
+
+				gFadingInColorFactor = gFadingInColorFactor + 0.001f;
+				if(gFadingInColorFactor >= 1.0f)
+				{
+					gFadingInColorFactor = 0.0f;
+				}
+				
+
+				gFadingOutColorFactor = gFadingOutColorFactor - 0.001f;
+				if (gFadingOutColorFactor <= 0.0f)
+				{
+					gFadingOutColorFactor = 1.0f;
+				}
+			//}
+				/*else
+				{
+					gFadingColorFactor = gFadingColorFactor - 0.01f;
+				}*/
 			}
 			display();
 		}
@@ -282,8 +297,6 @@ int initialize(void)
 		return(-4);
 	}
 
-	//glClearColor(0.764f, 0.956f, 0.803f, 0.0f);
-
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
@@ -305,34 +318,18 @@ void resize(int width, int height)
 	gluPerspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 }
 
-
 void display(void)
 {
-	static float trasnlation = -2.0f;
-	static float rotationAngle = 0.0f;
-	
-
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -3.0f);
+	glTranslatef(0.0f, 0.0f, -6.0f);
 
-	DrawBackgroundRectangle();
-	DrawHorizontalLines();
-	DrawVerticalLines();
-	DrawXAxis();
-	DrawYAxis();
-
-	glTranslatef(0.0f, trasnlation, -6.0f);
-	glRotatef(rotationAngle, 1.0f, 0.0f, 0.0f);
-	DrawCircle();
+	FadingInTriangle();
+	//FadingOutTriangle();
 
 	SwapBuffers(ghdc);
-
-	trasnlation = trasnlation + 0.001f;
-	rotationAngle = rotationAngle + 0.1f;
-
 }
 
 void uninitialize(void)
@@ -379,108 +376,80 @@ void uninitialize(void)
 	}
 }
 
-
-void DrawVerticalLines(void)
+void FadingInTriangle(void)
 {
-	float verticalLineCounter = 0.0f;
+	
+	glBegin(GL_TRIANGLES);
 
-	// multiple vertical lines
-	glLineWidth(1.0f);
-	glBegin(GL_LINES);
-	while (verticalLineCounter < 1.0f)
+	glColor3f(0.0f , gFadingInColorFactor , 0.0f);
+		glVertex3f(0.0f, 1.0f, 0.0f);
+		
+		glColor3f(gFadingInColorFactor,0.0f, 0.0f);
+		glVertex3f(-1.0f, -1.0f, 0.0f);
+		
+		glColor3f(0.0f, 0.0f, gFadingInColorFactor);
+		glVertex3f(1.0f, -1.0f, 0.0f);
+
+		//gFadingColorFactor = gFadingColorFactor + 0.05f;
+			
+	//}
+	glEnd();
+
+
+	/*gFadingColorFactor = 1.000005f;
+
+	glBegin(GL_TRIANGLES);
+	while (gFadingColorFactor >= 0.00000f)
 	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(verticalLineCounter, -1.0f, 0.0f);
-		glVertex3f(verticalLineCounter, 1.0f, 0.0f);
-		verticalLineCounter = verticalLineCounter + 0.05f;
+		gFadingColorFactor = gFadingColorFactor - 0.000005f;
+		
+		glColor3f(0.0f, gFadingColorFactor, 0.0f);
+		glVertex3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(-1.0f, -1.0f, 0.0f);
+		glVertex3f(1.0f, -1.0f, 0.0f);
+		
 	}
-	glEnd();
-
-	glBegin(GL_LINES);
-	while (verticalLineCounter > -1.05f)
-	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(verticalLineCounter, -1.0f, 0.0f);
-		glVertex3f(verticalLineCounter, 1.0f, 0.0f);
-		verticalLineCounter = verticalLineCounter - 0.05f;
-	}
-	glEnd();
-
+	glEnd();*/
 }
 
-void DrawHorizontalLines(void)
+void FadingOutTriangle(void)
 {
-	float horizontalLineCounter = 0.0f;
+	 //gFadingColorFactor = 1.0f;
+	
+	glBegin(GL_TRIANGLES);
+	//while (gFadingColorFactor >= 0.0f)
+	//{
+		glColor3f(0.0f, gFadingOutColorFactor, 0.0f);
+		glVertex3f(0.0f, 1.0f, 0.0f);
 
-	// multiple horizontal lines
-	glLineWidth(1.0f);
-	glBegin(GL_LINES);
-	while (horizontalLineCounter < 1.0f)
-	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(-1.0f, horizontalLineCounter, 0.0f);
-		glVertex3f(1.0f, horizontalLineCounter, 0.0f);
-		horizontalLineCounter = horizontalLineCounter + 0.05f;
-	}
-	glEnd();
+		glColor3f(gFadingOutColorFactor, 0.0f, 0.0f);
+		glVertex3f(-1.0f, -1.0f, 0.0f);
 
-	glBegin(GL_LINES);
-	while (horizontalLineCounter > -1.05f)
-	{
-		glColor3f(0.121f, 0.839f, 0.223f);
-		glVertex3f(-1.0f, horizontalLineCounter, 0.0f);
-		glVertex3f(1.0f, horizontalLineCounter, 0.0f);
-		horizontalLineCounter = horizontalLineCounter - 0.05f;
-	}
-	glEnd();
+		glColor3f(0.0f, 0.0f, gFadingOutColorFactor);
+		glVertex3f(1.0f, -1.0f, 0.0f);
 
-
-}
-
-void DrawXAxis(void)
-{
-	//single  horizontal line i.e X axis
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, 0.0f, 0.0f);
-	glVertex3f(1.0f, 0.0f, 0.0f);
+		//gFadingColorFactor = gFadingColorFactor - 0.0005f;
+	//}
 	glEnd();
 }
 
-void DrawYAxis(void)
-{
-	//single vertical line i.e Y axis
-	glLineWidth(3.0f);
-	glBegin(GL_LINES);
-	glColor3f(0.0f, 1.0f, 0.0f);
-	glVertex3f(0.0f, -1.0f, 0.0f);
-	glVertex3f(0.0f, 1.0f, 0.0f);
-	glEnd();
 
-}
-
-void DrawBackgroundRectangle(void)
-{
-	glBegin(GL_QUADS);
-	glColor3f(0.764f, 0.956f, 0.803f);
-
-	glVertex3f(1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, 1.0f, 0.0f);
-	glVertex3f(-1.0f, -1.0f, 0.0f);
-	glVertex3f(1.0f, -1.0f, 0.0f);
-
-	glEnd();
-}
-
-void DrawCircle(void)
-{
-	glBegin(GL_LINE_LOOP);
-	glColor3f(1.0f, 0.0f, 1.0f);
-	for (int i = 0; i < NUMPOINTS; i++)
-	{
-		GLfloat angle = (2.0f * PI * i) / NUMPOINTS;
-		glVertex3f((GLfloat)cos(angle), (GLfloat)sin(angle), 0.0f);
-	}
-	glEnd();
-}
+//void FadingRectangle(void)
+//{
+//	glMatrixMode(GL_MODELVIEW);
+//	glLoadIdentity();
+//	glTranslatef(1.5f, 0.0f, -6.0f);
+//
+//	glBegin(GL_QUADS);
+//	while ( gFadingColorFactor < 1.5f)
+//	{
+//		glColor3f(0.0f , 0.0f , gFadingColorFactor);
+//		glVertex3f(1.0f, 1.0f, 0.0f);
+//		glVertex3f(-1.0f, 1.0f, 0.0f);
+//		glVertex3f(-1.0f, -1.0f, 0.0f);
+//		glVertex3f(1.0f, -1.0f, 0.0f);
+//
+//		gFadingColorFactor = gFadingColorFactor + 0.05f;
+//	}
+//	glEnd();
+//}
