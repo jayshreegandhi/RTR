@@ -1,0 +1,9 @@
+
+Enter a string:
+my name is jayshree gandhi.
+
+The original string entered is :
+my name is jayshree gandhi.
+
+The reversed string is :
+.ihdnag eerhsyaj si eman ym

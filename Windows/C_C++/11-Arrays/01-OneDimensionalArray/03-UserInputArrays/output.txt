@@ -1,0 +1,58 @@
+
+Enter elements for 'integer' array:
+1
+2
+3
+4
+5
+
+Enter elements for 'floating-point' array:
+1.1
+1.2
+1.3
+
+Enter elements for 'character' array:
+j
+a
+y
+s
+h
+r
+e
+e
+g
+a
+n
+d
+h
+i
+.
+
+Integer array elements entered by you:
+1
+2
+3
+4
+5
+
+Floating-point array elements entered by you:
+1.100000
+1.200000
+1.300000
+
+Chracter array elements entered by you:
+j
+a
+y
+s
+h
+r
+e
+e
+g
+a
+n
+d
+h
+i
+.

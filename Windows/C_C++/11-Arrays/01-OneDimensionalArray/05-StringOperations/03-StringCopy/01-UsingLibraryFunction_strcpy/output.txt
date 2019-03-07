@@ -1,0 +1,9 @@
+
+Enter a string :
+India is my country. All Indians are my brother and sister. I love my country.
+
+The original string entered by you is:
+India is my country. All Indians are my brother and sister. I love my country.
+
+The copied string is :
+India is my country. All Indians are my brother and sister. I love my country.

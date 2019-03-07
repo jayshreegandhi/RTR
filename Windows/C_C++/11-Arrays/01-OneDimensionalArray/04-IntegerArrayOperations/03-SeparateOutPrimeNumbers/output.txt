@@ -1,0 +1,30 @@
+
+Enter integer elements for array:
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+
+Array elements are:
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+
+Prime numbers amongst the array elements are :
+11
+13
+17
+19

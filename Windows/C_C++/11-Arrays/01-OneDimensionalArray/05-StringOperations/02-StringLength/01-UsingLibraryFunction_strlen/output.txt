@@ -1,0 +1,8 @@
+
+Enter a string:
+my name is jayshree gandhi.
+
+String entered by you is:
+my name is jayshree gandhi.
+
+Length of string is = 27 characters!

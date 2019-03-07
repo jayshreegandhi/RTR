@@ -1,0 +1,6 @@
+
+Enter a string:
+jayshree gandhi
+
+String entered by you is:
+jayshree gandhi
