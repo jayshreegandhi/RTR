@@ -1,0 +1,13 @@
+
+Enter a string:
+India is my country.
+
+Entered string is:
+India is my country.
+
+In the string entered by you, the vowels and the number of their occurences are:
+'A' has occured = 1 times
+'E' has occured = 0 times
+'I' has occured = 3 times
+'O' has occured = 1 times
+'U' has occured = 1 times

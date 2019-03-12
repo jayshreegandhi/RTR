@@ -1,0 +1,16 @@
+
+Enter first string:
+
+Enter second string:
+********Before Concatenation**************
+The original first string entered is :
+india is my country.
+
+The original second string entered is :
+all indians are my brothers and sisters.
+********After Concatenation**************
+chArray_One[] is:
+india is my country.rothers and sisters.
+
+chArray_Two[] is:
+india is my country.rothers and sisters.
