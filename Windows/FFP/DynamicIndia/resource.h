@@ -1,0 +1,2 @@
+
+#define  IDWAVE_AEMEREWATAN 101

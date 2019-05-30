@@ -1,0 +1,13 @@
+
+
+Enter a string: 
+my name is jayshree gandhi
+
+
+String entered by you is:
+my name is jayshree gandhi
+
+
+String after capitalizing first word : 
+
+My Name Is Jayshree Gandhi

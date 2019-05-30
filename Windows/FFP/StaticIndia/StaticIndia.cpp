@@ -27,11 +27,26 @@ void display(void);
 void uninitialize(void);
 
 void drawD(void);
-void drawI(void);
+void drawFirstI(void);
+void drawSecondI(void);
 void drawN(void);
 void drawA(void);
 
 void drawReferenceLine(void);
+
+float saffronR = 1.0f;
+float saffronG = 0.6f;
+float saffronB = 0.2f;
+
+float whiteR = 1.0f;
+float whiteG = 1.0f;
+float whiteB = 1.0f;
+
+float greenR = 0.070f;
+float greenG = 0.533f;
+float greenB = 0.027f;
+
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -289,20 +304,20 @@ void display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(0.0f, 0.0f, -6.0f);
-	
+	drawFirstI();
 	//drawReferenceLine();
 	
+	glLoadIdentity();
+	glTranslatef(0.0f, 0.0f, -6.0f);
+	drawN();
+
 	glLoadIdentity();
 	glTranslatef(0.0f, 0.0f, -6.0f);
 	drawD();
 	
 	glLoadIdentity();
 	glTranslatef(0.0f, 0.0f, -6.0f);
-	drawI();
-
-	glLoadIdentity();
-	glTranslatef(0.0f, 0.0f, -6.0f);
-	drawN();
+	drawSecondI();
 
 	glLoadIdentity();
 	glTranslatef(0.0f, 0.0f, -6.0f);
@@ -355,141 +370,289 @@ void uninitialize(void)
 	}
 }
 
-void drawReferenceLine(void)
-{
-	glLineWidth(1.0f);
-	glBegin(GL_LINES);
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glVertex3f(-WIN_WIDTH, 1.0f, 0.0f);
-	glVertex3f(WIN_WIDTH, 1.0f, 0.0f);
-
-	glVertex3f(-WIN_WIDTH, -1.0f, 0.0f);
-	glVertex3f(WIN_WIDTH, -1.0f, 0.0f);
-
-	glVertex3f(0.0f, WIN_HEIGHT, 0.0f);
-	glVertex3f(0.0f, -WIN_HEIGHT, 0.0f);
-	glEnd();
-}
-
-void drawD(void)
+void drawFirstI(void)
 {
 	glLineWidth(5.0f);
 	glBegin(GL_LINES);
-
-	/*glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-(1.0f/2.0f), 1.0f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-(1.0f/2.0f), -1.0f, 0.0f);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-(1.0f/ 3.0f),(1.0f/2.0f), 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-(1.0f/ 3.0f), -(1.0f/2.0f), 0.0f);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-(1.0f/ 5.0f), (1.0f/ 4.0f), 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-(1.0f / 5.0f), -(1.0f / 4.0f), 0.0f);
-
-	glEnd();
-}*/
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-0.01f, 0.5f, 0.0f);
-	glVertex3f(0.51f, 0.5f, 0.0f);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(0.5f, 0.5f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(0.5f, -0.5f, 0.0f);
-
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-0.01f, -0.5f, 0.0f);
-	glVertex3f(0.51f, -0.5f, 0.0f);
+	//		   |||
+	//		   |||
+	//		   |||
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-2.5f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-2.5f, -1.0f, 0.0f);
 	glEnd();
 
 	glBegin(GL_LINES);
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(0.0f, 0.8f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(0.0f, -0.8f, 0.0f);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-0.01f, 0.79f, 0.0f);
-	glVertex3f(0.81f, 0.79f, 0.0f);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(0.8f, 0.8f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(0.8f, -0.8f, 0.0f);
-
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-0.01f, -0.79f, 0.0f);
-	glVertex3f(0.81f, -0.79f, 0.0f);
-
-	glEnd();
-}
-
-void drawI(void)
-{
-	glLineWidth(5.0f);
-	glBegin(GL_LINES);
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(1.5f, 0.81f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(1.5f, -0.81f, 0.0f);
-	
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-2.65f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-2.65f, -1.0f, 0.0f);
 	glEnd();
 
 	glBegin(GL_LINES);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-2.0f, 0.81f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-2.0f, -0.81f, 0.0f);
-
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-2.8f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-2.8f, -1.0f, 0.0f);
 	glEnd();
-
 }
 
 void drawN(void)
 {
 	glLineWidth(5.0f);
 	glBegin(GL_LINES);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-1.5f, 0.81f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-1.5f, -0.81f, 0.0f);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-0.5f, 0.81f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-0.5f, -0.81f, 0.0f);
-
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(-1.5f, 0.81f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(-0.5f, -0.81f, 0.0f);
-
+	//
+	//				|
+	//				|
+	//				|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-1.0f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-1.0f, -1.0f, 0.0f);
+	//
+	//			 \	|
+	//            \ |
+	//             \|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-1.9f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-1.0f, -1.0f, 0.0f);
 	glEnd();
+
+	glBegin(GL_LINES);
+	//
+	//		   |
+	//		   |
+	//		   |
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-2.0f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-2.0f, -1.0f, 0.0f);
+	//
+	//		   |\
+	//		   | \
+	//		   |  \
+	//
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-2.0f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-1.1f, -1.0f, 0.0f);
+	glEnd();
+
+	glBegin(GL_LINES);
+	//
+	//		   |
+	//		   ||
+	//		   |||
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-1.92f, 0.7f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-1.92f, -1.0f, 0.0f);
+
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-1.84f, 0.55f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-1.84f, -1.0f, 0.0f);
+	glEnd();
+
+	glBegin(GL_LINES);
+	//
+	//				  |
+	//				 ||
+	//				|||
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-1.08f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-1.08f, -0.7f, 0.0f);
+
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-1.15f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-1.15f, -0.55f, 0.0f);
+	
+	glEnd();
+}
+
+void drawD(void)
+{
+	glLineWidth(5.0f);
+	
+	glBegin(GL_LINES);
+	//		_______
+	//		|     |
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-0.5f, 1.0f, 0.0f);
+	glVertex3f(0.5f, 1.0f, 0.0f);
+	//		|
+	//		|
+	//		|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-0.5f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-0.5f, -1.0f, 0.0f);
+	//				|
+	//				|
+	//				|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(0.5f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(0.5f, -1.0f, 0.0f);
+	//      |______|
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-0.5f, -1.0f, 0.0f);
+	glVertex3f(0.5f, -1.0f, 0.0f);
+	glEnd();
+
+
+	glBegin(GL_LINES);
+	//		_______
+	//		|     |
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-0.5f / 1.3f, 1.0f / 1.3f, 0.0f);
+	glVertex3f(0.5f / 1.3f, 1.0f / 1.3f, 0.0f);
+	//		|
+	//		|
+	//		|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-0.5f / 1.3f, 1.0f / 1.3f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-0.5f / 1.3f, -1.0f / 1.3f, 0.0f);
+	//				|
+	//				|
+	//				|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(0.5f / 1.3f, 1.0f / 1.3f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(0.5f / 1.3f, -1.0f / 1.3f, 0.0f);
+	//      |______|
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-0.5f / 1.3f, -1.0f / 1.3f, 0.0f);
+	glVertex3f(0.5f / 1.3f, -1.0f / 1.3f, 0.0f);
+	glEnd();
+
+	glBegin(GL_LINES);
+	//		_______
+	//		|     |
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-0.5f/2.0f, 1.0f/2.0f, 0.0f);
+	glVertex3f(0.5f/2.0f, 1.0f/2.0f, 0.0f);
+	//		|
+	//		|
+	//		|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(-0.5f/2.0f, 1.0f/2.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-0.5f/2.0f, -1.0f/2.0f, 0.0f);
+	//				|
+	//				|
+	//				|
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(0.5f/2.0f, 1.0f/2.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(0.5f/2.0f, -1.0f/2.0f, 0.0f);
+	//      |______|
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(-0.5f / 2.0f, -1.0f / 2.0f, 0.0f);
+	glVertex3f(0.5f / 2.0f, -1.0f / 2.0f, 0.0f);
+	glEnd();
+
+}
+
+void drawSecondI(void)
+{
+	glLineWidth(5.0f);
+	
+	glBegin(GL_LINES);
+	//		|||
+	//		|||
+	//		|||
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(1.0f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(1.0f, -1.0f, 0.0f);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(1.15f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(1.15f, -1.0f, 0.0f);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(1.3f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(1.3f, -1.0f, 0.0f);
+	glEnd();
+
 }
 
 void drawA(void)
 {
 	glLineWidth(5.0f);
 	glBegin(GL_LINES);
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(2.5f, 0.81f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(2.0f, -0.81f, 0.0f);
+	//			/\
+	//		   /  \
+	//		  /    \
+	//
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(2.3f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(1.8f, -1.0f, 0.0f);
+	
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(2.3f, 1.0f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(2.8f, -1.0f, 0.0f);
 	glEnd();
 
 	glBegin(GL_LINES);
+	//			/\
+	//		   //\\
+	//		  //  \\
+	//
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(2.3f, 0.7f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(1.9f, -1.0f, 0.0f);
 
-	glColor3f(0.538f, 0.360f, 0.102f);
-	glVertex3f(2.5f, 0.81f, 0.0f);
-	glColor3f(0.288f, 0.395f, 0.317f);
-	glVertex3f(3.0f, -0.81f, 0.0f);
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(2.3f, 0.7f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(2.7f, -1.0f, 0.0f);
+	glEnd();
 
+	glBegin(GL_LINES);
+	//			/\
+	//		   //\\
+	//		  ///\\\
+	//
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(2.3f, 0.4f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(2.0f, -1.0f, 0.0f);
+
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(2.3f, 0.4f, 0.0f);
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(2.6f, -1.0f, 0.0f);
+	glEnd();
+	
+	// FLAG
+	glBegin(GL_LINES);
+	glColor3f(saffronR, saffronG, saffronB);
+	glVertex3f(2.19f, -0.2f, 0.0f);
+	glVertex3f(2.42f, -0.2f, 0.0f);
+	
+	glColor3f(whiteR, whiteG, whiteB);
+	glVertex3f(2.18f, -0.23f, 0.0f);
+	glVertex3f(2.42f, -0.23f, 0.0f);
+
+	glColor3f(greenR, greenG, greenB);
+	glVertex3f(2.18f, -0.25f, 0.0f);
+	glVertex3f(2.43f, -0.25f, 0.0f);
+	
 	glEnd();
 }

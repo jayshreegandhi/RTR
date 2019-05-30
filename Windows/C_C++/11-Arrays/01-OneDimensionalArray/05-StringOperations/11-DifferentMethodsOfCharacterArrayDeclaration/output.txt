@@ -1,0 +1,33 @@
+
+
+Size of chArray_01 : 14
+
+Size of chArray_02 : 9
+
+Size of chArray_03 : 4
+
+Size of chArray_04 : 3
+
+Size of chArray_05 : 39
+
+
+
+The Strings are :
+
+chArray_01 : ASTROMEDICOMP
+
+chArray_02 : WELCOMES
+
+chArray_03 : YOU
+
+chArray_04 : TO
+
+chArray_05 : REAL TIME RENDERING BATCH OF 2018-2019
+
+
+
+Size of chArray_withoutNullTerminator : 5
+
+
+chArray_withoutNullTerminator : Hello
+

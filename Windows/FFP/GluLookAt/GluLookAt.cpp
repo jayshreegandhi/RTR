@@ -2,8 +2,7 @@
 #include<gl/GL.h>
 #include<gl/GLU.h>
 #include<stdio.h>
-#define _USE_MATH_DEFINES 1
-#include<math.h>
+
 #pragma comment(lib,"opengl32.lib")
 #pragma comment(lib,"glu32.lib")
 

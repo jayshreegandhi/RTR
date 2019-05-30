@@ -1,0 +1,3 @@
+#include"TextureCube.h"
+
+IDBITMAP_KUNDALI BITMAP Kundali.bmp

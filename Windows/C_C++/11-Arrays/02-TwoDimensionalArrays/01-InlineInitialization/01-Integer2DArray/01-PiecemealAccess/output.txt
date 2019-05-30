@@ -1,0 +1,32 @@
+
+
+Size of 2D int array is : 60
+
+
+No of rows : 5
+
+
+No of cols : 3
+
+
+No of elements in 2D array is : 15
+******ROW 1**********
+iArray[0][0] = 1
+iArray[0][1] = 2
+iArray[0][2] = 3
+******ROW 2**********
+iArray[1][0] = 2
+iArray[1][1] = 4
+iArray[1][2] = 5
+******ROW 3**********
+iArray[2][0] = 3
+iArray[2][1] = 6
+iArray[2][2] = 9
+******ROW 1**********
+iArray[3][0] = 4
+iArray[3][1] = 8
+iArray[3][2] = 12
+******ROW 1**********
+iArray[4][0] = 5
+iArray[4][1] = 10
+iArray[4][2] = 15

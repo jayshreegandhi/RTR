@@ -1,0 +1,14 @@
+
+
+Enter a string: 
+my name is jayshree gandhi.
+
+
+String entered by you is:
+my name is jayshree gandhi.
+
+
+Number of spaces : 4
+
+
+Number of words : 5

@@ -1,0 +1,3 @@
+#include"TextureSmile.h"
+
+IDBITMAP_SMILE BITMAP Smile.bmp

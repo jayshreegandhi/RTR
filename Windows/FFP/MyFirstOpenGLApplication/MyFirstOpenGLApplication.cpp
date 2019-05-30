@@ -1,4 +1,6 @@
-#include<GL/freeglut.h>
+#include<freeglut.h>
+
+#pragma comment(lib,"freeglut.lib")
 
 bool bIsFullScreen = false;
 
