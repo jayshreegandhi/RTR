@@ -30,10 +30,21 @@ void uninitialize(void);
 
 bool bLight = false;
 GLUquadric *quadric = NULL;
-GLfloat LightAmbient[] = { 0.0f,0.0f,0.0f,1.0f };
-GLfloat LightDiffuse[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat LightSpecular[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat LightPosition[] = { 100.0f,100.0f,100.0f,1.0f };
+
+GLfloat LightAmbientZero[] = { 0.0f,0.0f,0.0f,1.0f };
+GLfloat LightDiffuseZero[] = { 1.0f,0.0f,0.0f,1.0f };
+GLfloat LightSpecularZero[] = { 1.0f,0.0f,0.0f,1.0f };
+GLfloat LightPositionZero[] = { 0.0f,0.0f,0.0f,1.0f };
+
+GLfloat LightAmbientOne[] = { 0.0f,0.0f,0.0f,1.0f };
+GLfloat LightDiffuseOne[] = { 0.0f,1.0f,0.0f,1.0f };
+GLfloat LightSpecularOne[] = { 0.0f,1.0f,0.0f,1.0f };
+GLfloat LightPositionOne[] = { 0.0f,0.0f,0.0f,1.0f };
+
+GLfloat LightAmbientTwo[] = { 0.0f,0.0f,0.0f,1.0f };
+GLfloat LightDiffuseTwo[] = { 0.0f,0.0f,1.0f,1.0f };
+GLfloat LightSpecularTwo[] = { 0.0f,0.0f,1.0f,1.0f };
+GLfloat LightPositionTwo[] = { 0.0f,0.0f,0.0f,1.0f };
 
 GLfloat MaterialAmbient[] = { 0.0f,0.0f,0.0f,1.0f };
 GLfloat MaterialDiffuse[] = { 1.0f,1.0f,1.0f,1.0f };
@@ -41,6 +52,11 @@ GLfloat MaterialSpecular[] = { 1.0f,1.0f,1.0f,1.0f };
 GLfloat MaterialPosition[] = { 100.0f,100.0f,100.0f,1.0f };
 GLfloat MaterialShininess[] = { 50.0f };
 //GLfloat MaterialShininess[] = { 128.0f };
+
+GLfloat LightAngleZero = 0.0f;
+GLfloat LightAngleOne = 0.0f;
+GLfloat LightAngleTwo = 0.0f;
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -292,16 +308,25 @@ int initialize(void)
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	glLightfv(GL_LIGHT0, GL_AMBIENT, LightAmbient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, LightDiffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, LightSpecular);
-	glLightfv(GL_LIGHT0, GL_POSITION, LightPosition);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, LightAmbientZero);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, LightDiffuseZero);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, LightSpecularZero);
 	glEnable(GL_LIGHT0);
 
+	glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbientOne);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuseOne);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, LightSpecularOne);
+	glEnable(GL_LIGHT1);
+
+	glLightfv(GL_LIGHT2, GL_AMBIENT, LightAmbientTwo);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, LightDiffuseTwo);
+	glLightfv(GL_LIGHT2, GL_SPECULAR, LightSpecularTwo);
+	glEnable(GL_LIGHT2);
+
 	glMaterialfv(GL_FRONT, GL_AMBIENT, MaterialAmbient);
-	//glMaterialfv(GL_FRONT, GL_DIFFUSE, MaterialDiffuse);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, MaterialDiffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, MaterialSpecular);
-	//glMaterialfv(GL_FRONT, GL_POSITION, MaterialPosition);
+	glMaterialfv(GL_FRONT, GL_POSITION, MaterialPosition);
 	glMaterialfv(GL_FRONT, GL_SHININESS, MaterialShininess);
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
@@ -331,21 +356,57 @@ void display(void)
 	glLoadIdentity();
 
 	glLoadIdentity();
-	//glTranslatef(0.0f, 0.0f, -0.70f);
-	//glTranslatef(0.0f, 0.0f, -0.75f);
-	//glTranslatef(0.0f, 0.0f, -3.0f);
-	glTranslatef(0.0f, 0.0f, -0.55f);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	quadric = gluNewQuadric();
-	gluSphere(quadric, 0.2f, 30, 30);
+	
+	glPushMatrix();
+		gluLookAt(0, 0, 0.55f, 0, 0, 0, 0, 1, 0);
+		glPushMatrix();
+			glRotatef(LightAngleZero, 1.0f, 0.0f, 0.0f);
+			LightPositionZero[1] = LightAngleZero;
+			glLightfv(GL_LIGHT0, GL_POSITION, LightPositionZero);
+		glPopMatrix();
+
+		glPushMatrix();
+		glRotatef(LightAngleOne, 0.0f, 1.0f, 0.0f);
+		LightPositionOne[0] = LightAngleOne;
+		glLightfv(GL_LIGHT1, GL_POSITION, LightPositionOne);
+		glPopMatrix();
+
+		glPushMatrix();
+		glRotatef(LightAngleTwo, 0.0f, 0.0f, 1.0f);
+		LightPositionTwo[0] = LightAngleTwo;
+		glLightfv(GL_LIGHT2, GL_POSITION, LightPositionTwo);
+		glPopMatrix();
+
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		quadric = gluNewQuadric();
+		gluSphere(quadric, 0.2f, 40, 40);
+
+	glPopMatrix();
+	
 	SwapBuffers(ghdc);
 
 }
 
 void update(void)
 {
+	LightAngleZero = LightAngleZero + 1.0f;
+	if (LightAngleZero >= 360.0f)
+	{
+		LightAngleZero = 0.0f;
+	}
 
+	LightAngleOne = LightAngleOne + 1.0f;
+	if (LightAngleOne >= 360.0f)
+	{
+		LightAngleOne = 0.0f;
+	}
 
+	LightAngleTwo = LightAngleTwo + 1.0f;
+	if (LightAngleTwo >= 360.0f)
+	{
+		LightAngleTwo = 0.0f;
+	}
 }
 
 

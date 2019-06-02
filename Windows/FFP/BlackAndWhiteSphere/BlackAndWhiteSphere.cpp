@@ -30,17 +30,6 @@ void uninitialize(void);
 
 bool bLight = false;
 GLUquadric *quadric = NULL;
-GLfloat LightAmbient[] = { 0.0f,0.0f,0.0f,1.0f };
-GLfloat LightDiffuse[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat LightSpecular[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat LightPosition[] = { 100.0f,100.0f,100.0f,1.0f };
-
-GLfloat MaterialAmbient[] = { 0.0f,0.0f,0.0f,1.0f };
-GLfloat MaterialDiffuse[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat MaterialSpecular[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat MaterialPosition[] = { 100.0f,100.0f,100.0f,1.0f };
-GLfloat MaterialShininess[] = { 50.0f };
-//GLfloat MaterialShininess[] = { 128.0f };
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -291,18 +280,6 @@ int initialize(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	glLightfv(GL_LIGHT0, GL_AMBIENT, LightAmbient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, LightDiffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, LightSpecular);
-	glLightfv(GL_LIGHT0, GL_POSITION, LightPosition);
-	glEnable(GL_LIGHT0);
-
-	glMaterialfv(GL_FRONT, GL_AMBIENT, MaterialAmbient);
-	//glMaterialfv(GL_FRONT, GL_DIFFUSE, MaterialDiffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, MaterialSpecular);
-	//glMaterialfv(GL_FRONT, GL_POSITION, MaterialPosition);
-	glMaterialfv(GL_FRONT, GL_SHININESS, MaterialShininess);
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
 

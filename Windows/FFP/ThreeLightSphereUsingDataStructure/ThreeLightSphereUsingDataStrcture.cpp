@@ -30,10 +30,33 @@ void uninitialize(void);
 
 bool bLight = false;
 GLUquadric *quadric = NULL;
-GLfloat LightAmbient[] = { 0.0f,0.0f,0.0f,1.0f };
-GLfloat LightDiffuse[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat LightSpecular[] = { 1.0f,1.0f,1.0f,1.0f };
-GLfloat LightPosition[] = { 100.0f,100.0f,100.0f,1.0f };
+
+struct Light
+{
+	GLfloat Ambient[4];
+	GLfloat Diffuse[4];
+	GLfloat Specular[4];
+	GLfloat Position[4];
+	GLfloat Angle = 0.0f;
+};
+
+Light lights[3];
+/*
+GLfloat LightAmbientZero[] = { 0.0f,0.0f,0.0f,1.0f };
+GLfloat LightDiffuseZero[] = { 1.0f,0.0f,0.0f,1.0f };
+GLfloat LightSpecularZero[] = { 1.0f,0.0f,0.0f,1.0f };
+GLfloat LightPositionZero[] = { 0.0f,0.0f,0.0f,1.0f };
+
+GLfloat LightAmbientOne[] = { 0.0f,0.0f,0.0f,1.0f };
+GLfloat LightDiffuseOne[] = { 0.0f,1.0f,0.0f,1.0f };
+GLfloat LightSpecularOne[] = { 0.0f,1.0f,0.0f,1.0f };
+GLfloat LightPositionOne[] = { 0.0f,0.0f,0.0f,1.0f };
+
+GLfloat LightAmbientTwo[] = { 0.0f,0.0f,0.0f,1.0f };
+GLfloat LightDiffuseTwo[] = { 0.0f,0.0f,1.0f,1.0f };
+GLfloat LightSpecularTwo[] = { 0.0f,0.0f,1.0f,1.0f };
+GLfloat LightPositionTwo[] = { 0.0f,0.0f,0.0f,1.0f };
+*/
 
 GLfloat MaterialAmbient[] = { 0.0f,0.0f,0.0f,1.0f };
 GLfloat MaterialDiffuse[] = { 1.0f,1.0f,1.0f,1.0f };
@@ -41,6 +64,11 @@ GLfloat MaterialSpecular[] = { 1.0f,1.0f,1.0f,1.0f };
 GLfloat MaterialPosition[] = { 100.0f,100.0f,100.0f,1.0f };
 GLfloat MaterialShininess[] = { 50.0f };
 //GLfloat MaterialShininess[] = { 128.0f };
+
+GLfloat LightAngleZero = 0.0f;
+GLfloat LightAngleOne = 0.0f;
+GLfloat LightAngleTwo = 0.0f;
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -282,7 +310,53 @@ int initialize(void)
 		return(-4);
 	}
 
+	
+	for (int i = 0; i < 3; i++)
+	{
+		lights[i].Ambient[0] = 0.0f;
+		lights[i].Ambient[1] = 0.0f;
+		lights[i].Ambient[2] = 0.0f;
+		lights[i].Ambient[3] = 1.0f;
+	}
 
+	for (int i = 0; i < 3; i++)
+	{
+		lights[i].Position[0] = 0.0f;
+		lights[i].Position[1] = 0.0f;
+		lights[i].Position[2] = 0.0f;
+		lights[i].Position[3] = 1.0f;
+	}
+
+	lights[0].Diffuse[0] = 1.0f;
+	lights[0].Diffuse[1] = 0.0f;
+	lights[0].Diffuse[2] = 0.0f;
+	lights[0].Diffuse[3] = 1.0f;
+
+	lights[0].Specular[0] = 1.0f;
+	lights[0].Specular[1] = 0.0f;
+	lights[0].Specular[2] = 0.0f;
+	lights[0].Specular[3] = 1.0f;
+
+	lights[1].Diffuse[0] = 0.0f;
+	lights[1].Diffuse[1] = 1.0f;
+	lights[1].Diffuse[2] = 0.0f;
+	lights[1].Diffuse[3] = 1.0f;
+
+	lights[1].Specular[0] = 0.0f;
+	lights[1].Specular[1] = 1.0f;
+	lights[1].Specular[2] = 0.0f;
+	lights[1].Specular[3] = 1.0f;
+
+	lights[2].Diffuse[0] = 0.0f;
+	lights[2].Diffuse[1] = 0.0f;
+	lights[2].Diffuse[2] = 1.0f;
+	lights[2].Diffuse[3] = 1.0f;
+
+	lights[2].Specular[0] = 0.0f;
+	lights[2].Specular[1] = 0.0f;
+	lights[2].Specular[2] = 1.0f;
+	lights[2].Specular[3] = 1.0f;
+	
 	glShadeModel(GL_SMOOTH);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -292,16 +366,25 @@ int initialize(void)
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	glLightfv(GL_LIGHT0, GL_AMBIENT, LightAmbient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, LightDiffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, LightSpecular);
-	glLightfv(GL_LIGHT0, GL_POSITION, LightPosition);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lights[0].Ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lights[0].Diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lights[0].Specular);
 	glEnable(GL_LIGHT0);
 
+	glLightfv(GL_LIGHT1, GL_AMBIENT, lights[1].Ambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, lights[1].Diffuse);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, lights[1].Specular);
+	glEnable(GL_LIGHT1);
+
+	glLightfv(GL_LIGHT2, GL_AMBIENT, lights[2].Ambient);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, lights[2].Diffuse);
+	glLightfv(GL_LIGHT2, GL_SPECULAR, lights[2].Specular);
+	glEnable(GL_LIGHT2);
+
 	glMaterialfv(GL_FRONT, GL_AMBIENT, MaterialAmbient);
-	//glMaterialfv(GL_FRONT, GL_DIFFUSE, MaterialDiffuse);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, MaterialDiffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, MaterialSpecular);
-	//glMaterialfv(GL_FRONT, GL_POSITION, MaterialPosition);
+	glMaterialfv(GL_FRONT, GL_POSITION, MaterialPosition);
 	glMaterialfv(GL_FRONT, GL_SHININESS, MaterialShininess);
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
@@ -331,21 +414,56 @@ void display(void)
 	glLoadIdentity();
 
 	glLoadIdentity();
-	//glTranslatef(0.0f, 0.0f, -0.70f);
-	//glTranslatef(0.0f, 0.0f, -0.75f);
-	//glTranslatef(0.0f, 0.0f, -3.0f);
-	glTranslatef(0.0f, 0.0f, -0.55f);
+
+	glPushMatrix();
+	gluLookAt(0, 0, 0.55f, 0, 0, 0, 0, 1, 0);
+	glPushMatrix();
+	glRotatef(LightAngleZero, 1.0f, 0.0f, 0.0f);
+	lights[0].Position[1] = LightAngleZero;
+	glLightfv(GL_LIGHT0, GL_POSITION, lights[0].Position);
+	glPopMatrix();
+
+	glPushMatrix();
+	glRotatef(LightAngleOne, 0.0f, 1.0f, 0.0f);
+	lights[1].Position[0] = LightAngleOne;
+	glLightfv(GL_LIGHT1, GL_POSITION, lights[1].Position);
+	glPopMatrix();
+
+	glPushMatrix();
+	glRotatef(LightAngleTwo, 0.0f, 0.0f, 1.0f);
+	lights[2].Position[0] = LightAngleTwo;
+	glLightfv(GL_LIGHT2, GL_POSITION, lights[2].Position);
+	glPopMatrix();
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	quadric = gluNewQuadric();
-	gluSphere(quadric, 0.2f, 30, 30);
+	gluSphere(quadric, 0.2f, 40, 40);
+
+	glPopMatrix();
+
 	SwapBuffers(ghdc);
 
 }
 
 void update(void)
 {
+	LightAngleZero = LightAngleZero + 1.0f;
+	if (LightAngleZero >= 360.0f)
+	{
+		LightAngleZero = 0.0f;
+	}
 
+	LightAngleOne = LightAngleOne + 1.0f;
+	if (LightAngleOne >= 360.0f)
+	{
+		LightAngleOne = 0.0f;
+	}
 
+	LightAngleTwo = LightAngleTwo + 1.0f;
+	if (LightAngleTwo >= 360.0f)
+	{
+		LightAngleTwo = 0.0f;
+	}
 }
 
 
