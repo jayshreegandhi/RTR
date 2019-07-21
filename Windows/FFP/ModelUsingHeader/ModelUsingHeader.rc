@@ -1,0 +1,3 @@
+#include"ModelUsingHeader.h"
+
+IDBITMAP_TEAPOT_MARBLE BITMAP marble.bmp
