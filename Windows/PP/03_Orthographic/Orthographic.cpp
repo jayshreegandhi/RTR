@@ -387,7 +387,7 @@ int initialize(void)
 	//Error checking for compilation
 	iShaderCompileStatus = 0;
 	iInfoLogLength = 0;
-	*szInfoLog = NULL;
+	szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
 	glGetShaderiv(fragmentShaderObject, // whose?
@@ -448,22 +448,22 @@ int initialize(void)
 	//Link the shader program
 	glLinkProgram(gShaderProgramObject);//link to whom?
 
-	/*
+	
 	//Error checking for linking
-	GLint iShaderLinkStatus = 0;
+	GLint iProgramLinkStatus = 0;
 	iInfoLogLength = 0;
-	*szInfoLog = NULL;
+	szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(gShaderProgramObject, // whose?
+	glGetProgramiv(gShaderProgramObject, // whose?
 		GL_LINK_STATUS,//what to get?
-		&iShaderLinkStatus);//in what?
+		&iProgramLinkStatus);//in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
-	if (iShaderLinkStatus == GL_FALSE)
+	if (iProgramLinkStatus == GL_FALSE)
 	{
 		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
-		glGetShaderiv(gShaderProgramObject,
+		glGetProgramiv(gShaderProgramObject,
 			GL_INFO_LOG_LENGTH,
 			&iInfoLogLength);
 
@@ -492,8 +492,7 @@ int initialize(void)
 			}
 		}
 	}
-	*/
-
+	
 	//Post-Linking reteriving uniform location
 	mvpUniform = glGetUniformLocation(gShaderProgramObject,
 		"u_mvp_matrix");

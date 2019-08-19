@@ -2,9 +2,22 @@
 #include<GL/glew.h> //Wrangler For PP , add additional headers and lib path 
 #include<gl/GL.h>
 #include<stdio.h>
+#include"vmath.h"
 
 #pragma comment(lib,"glew32.lib")
 #pragma comment(lib,"opengl32.lib")
+
+//global namespace
+
+using namespace vmath;
+
+enum
+{
+	AMC_ATTRIBUTE_POSITION = 0,
+	AMC_ATTRIBUTE_COLOR,
+	AMC_ATTRIBUTE_NORMAL,
+	AMC_ATTRIBUTE_TEXCOORD0
+};
 
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
@@ -27,16 +40,30 @@ void display(void);
 void update(void);
 void uninitialize(void);
 
-GLuint gVertexShaderObject;
-GLuint gFragmentShaderObject;
 GLuint gShaderProgramObject;
+GLuint vao_triangle;
+GLuint vao_rectangle;// vertex array object
+
+GLuint vbo_position_triangle;
+GLuint vbo_position_rectangle; // vertex buffer object
+
+GLuint vbo_color_triangle;
+//GLuint vbo_color_rectangle; 
+
+
+GLfloat angleTriangle = 0.0f;
+GLfloat angleRectangle = 0.0f;
+
+GLuint mvpUniform; //model view projection uniform
+mat4 perspectiveProjectionMatrix;
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
 	WNDCLASSEX wndclass;
 	HWND hwnd;
 	MSG msg;
-	TCHAR szAppName[] = TEXT("MY OGL PP WINDOW");
+	TCHAR szAppName[] = TEXT("MY OGL WINDOW");
 	bool bDone = false;
 	int iRet = 0;
 
@@ -67,7 +94,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	hwnd = CreateWindowEx(WS_EX_APPWINDOW,
 		szAppName,
-		TEXT("My PP Blue Screen - Jayshree"),
+		TEXT("My Double buffer Window - Jayshree"),
 		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
 		100,
 		100,
@@ -132,7 +159,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			{
 				//code
 				//here call update
-				//update();
+				update();
 			}
 			display();
 		}
@@ -268,44 +295,54 @@ int initialize(void)
 		DestroyWindow(ghWnd);
 	}
 
+	GLuint vertexShaderObject;
+	GLuint fragmentShaderObject;
+
+
 	//***************** 1. VERTEX SHADER ************************************ 
 	//define vertex shader object
 	//create vertex shader object
-	gVertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
+	vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
 
 	//Write vertex shader code
 	const GLchar *vertexShaderSourceCode =
 		"#version 450 core" \
 		"\n" \
+		"in vec4 vPosition;" \
+		"in vec4 vColor;" \
+		"uniform mat4 u_mvp_matrix;" \
+		"out vec4 out_color;" \
 		"void main(void)" \
 		"{" \
-		"}" ;
+		"gl_Position = u_mvp_matrix * vPosition;" \
+		"out_color = vColor;" \
+		"}";
 
 	//specify above source code to vertex shader object
-	glShaderSource(gVertexShaderObject,//to whom?
+	glShaderSource(vertexShaderObject,//to whom?
 		1,//how many strings
 		(const GLchar **)&vertexShaderSourceCode,//address of string
 		NULL);// NULL specifes that there is only one string with fixed length
 
 	//Compile the vertex shader
-	glCompileShader(gVertexShaderObject);
+	glCompileShader(vertexShaderObject);
 
-	
+
 	//Error checking for compilation:
 	GLint iShaderCompileStatus = 0;
 	GLint iInfoLogLength = 0;
 	GLchar *szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(gVertexShaderObject, // whose?
+	glGetShaderiv(vertexShaderObject, // whose?
 		GL_COMPILE_STATUS,//what to get?
 		&iShaderCompileStatus);//in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iShaderCompileStatus == GL_FALSE)
 	{
-		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length 
-		glGetShaderiv(gVertexShaderObject,
+		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
+		glGetShaderiv(vertexShaderObject,
 			GL_INFO_LOG_LENGTH,
 			&iInfoLogLength);
 
@@ -318,7 +355,7 @@ int initialize(void)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(gVertexShaderObject,//whose?
+				glGetShaderInfoLog(vertexShaderObject,//whose?
 					iInfoLogLength,//length?
 					&written,//might have not used all, give that much only which have been used in what?
 					szInfoLog);//store in what?
@@ -334,46 +371,49 @@ int initialize(void)
 			}
 		}
 	}
-	
+
 
 	//************************** 2. FRAGMENT SHADER ********************************
 	//define fragment shader object
 	//create fragment shader object
-	gFragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
+	fragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
 
 	//write fragment shader code
 	const GLchar *fragmentShaderSourceCode =
 		"#version 450 core" \
 		"\n" \
+		"in vec4 out_color;" \
+		"out vec4 fragColor;" \
 		"void main(void)" \
 		"{" \
+		"fragColor = out_color;" \
 		"}";
 
 	//specify the above source code to fragment shader object
-	glShaderSource(gFragmentShaderObject,
+	glShaderSource(fragmentShaderObject,
 		1,
 		(const GLchar **)&fragmentShaderSourceCode,
 		NULL);
 
 	//compile the fragment shader
-	glCompileShader(gFragmentShaderObject);
+	glCompileShader(fragmentShaderObject);
 
-	
+
 	//Error checking for compilation
 	iShaderCompileStatus = 0;
 	iInfoLogLength = 0;
 	szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(gFragmentShaderObject, // whose?
+	glGetShaderiv(fragmentShaderObject, // whose?
 		GL_COMPILE_STATUS,//what to get?
 		&iShaderCompileStatus);//in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iShaderCompileStatus == GL_FALSE)
 	{
-		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length 
-		glGetShaderiv(gFragmentShaderObject,
+		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
+		glGetShaderiv(fragmentShaderObject,
 			GL_INFO_LOG_LENGTH,
 			&iInfoLogLength);
 
@@ -382,11 +422,12 @@ int initialize(void)
 		{
 			//allocate memory to pointer
 			szInfoLog = (GLchar *)malloc(iInfoLogLength);
+
 			if (szInfoLog != NULL)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(gFragmentShaderObject,//whose?
+				glGetShaderInfoLog(fragmentShaderObject,//whose?
 					iInfoLogLength,//length?
 					&written,//might have not used all, give that much only which have been used in what?
 					szInfoLog);//store in what?
@@ -402,29 +443,38 @@ int initialize(void)
 			}
 		}
 	}
-	
+
 
 	//create shader program object
 	gShaderProgramObject = glCreateProgram();
 
 	//Attach vertex shader to shader program
 	glAttachShader(gShaderProgramObject,//to whom?
-		gVertexShaderObject);//what to attach?
+		vertexShaderObject);//what to attach?
 
 	//Attach fragment shader to shader program
 	glAttachShader(gShaderProgramObject,
-		gFragmentShaderObject);
+		fragmentShaderObject);
+
+	//Pre-Linking binding to vertex attribute
+	glBindAttribLocation(gShaderProgramObject,
+		AMC_ATTRIBUTE_POSITION,
+		"vPosition");
+
+	glBindAttribLocation(gShaderProgramObject,
+		AMC_ATTRIBUTE_COLOR,
+		"vColor");
 
 	//Link the shader program
 	glLinkProgram(gShaderProgramObject);//link to whom?
 
-	
+
 	//Error checking for linking
 	GLint iProgramLinkStatus = 0;
 	iInfoLogLength = 0;
 	szInfoLog = NULL;
 
-	//Step 1 : Call glGetProgramiv() to get comiple status of particular shader
+	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
 	glGetProgramiv(gShaderProgramObject, // whose?
 		GL_LINK_STATUS,//what to get?
 		&iProgramLinkStatus);//in what?
@@ -432,7 +482,7 @@ int initialize(void)
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iProgramLinkStatus == GL_FALSE)
 	{
-		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length 
+		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
 		glGetProgramiv(gShaderProgramObject,
 			GL_INFO_LOG_LENGTH,
 			&iInfoLogLength);
@@ -462,13 +512,183 @@ int initialize(void)
 			}
 		}
 	}
-	
 
-	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+
+	//Post-Linking reteriving uniform location
+	mvpUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_mvp_matrix");
+
+	//above is the preparation of data transfer from CPU to GPU 
+	//i.e glBindAttribLocation() & glGetUniformLocation()
+
+	//array initialization (glBegin() and glEnd())
+	const GLfloat traingleVertices[] = {
+		0.0f,1.0f,0.0f,
+		-1.0f,-1.0f,0.0f,
+		1.0f,-1.0f,0.0f };
+
+	const GLfloat rectangleVertices[] = {
+		1.0f, 1.0f, 0.0f,
+		-1.0f,1.0f,0.0f,
+		-1.0f,-1.0f,0.0f,
+		1.0f,-1.0f,0.0f };
+
+	const GLfloat traingleColor[] = {
+		1.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 1.0f };
+
+	/*const GLfloat rectangleColor[] = {
+		0.0f, 0.0f, 1.0f,
+		0.0f,0.0f,1.0f,
+		0.0f,0.0f,1.0f,
+		0.0f,0.0f,1.0f };
+	*/
+
+	//create vao (vertex array object)
+	glGenVertexArrays(1, &vao_triangle);
+
+	//Bind vao
+	glBindVertexArray(vao_triangle);
+	//---------------------position---------------------------
+	//generate vertex buffers
+	glGenBuffers(1, &vbo_position_triangle);
+
+	//bind buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_triangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(traingleVertices),
+		traingleVertices,
+		GL_STATIC_DRAW);
+
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		NULL);
+
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+	//--------------------------------color------------------------
+	//generate vertex buffers
+	glGenBuffers(1, &vbo_color_triangle);
+
+	//bind buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_color_triangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(traingleColor),
+		traingleColor,
+		GL_STATIC_DRAW);
+
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_COLOR,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		NULL);
+
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_COLOR);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//unbind vao
+	glBindVertexArray(0);
+
+	//------------------------------rectangle-------------------------------
+	//create vao rectangle(vertex array object)
+	glGenVertexArrays(1, &vao_rectangle);
+
+	//Bind vao
+	glBindVertexArray(vao_rectangle);
+
+	//generate vertex buffers
+	glGenBuffers(1, &vbo_position_rectangle);
+
+	//bind buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_rectangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(rectangleVertices),
+		rectangleVertices,
+		GL_STATIC_DRAW);
+
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		NULL);
+
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	/*
+	//--------------------color------------------------
+	//generate vertex buffers
+	glGenBuffers(1, &vbo_color_rectangle);
+
+	//bind buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_color_rectangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(rectangleColor),
+		rectangleColor,
+		GL_STATIC_DRAW);
+
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_COLOR,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		NULL);
+
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_COLOR);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	*/
+
+	glVertexAttrib3f(AMC_ATTRIBUTE_COLOR,
+		0.0f,
+		0.0f,
+		1.0f);
+
+	//unbind vao
+	glBindVertexArray(0);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+	//glDisable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+
+	//make identity
+	perspectiveProjectionMatrix = mat4::identity();
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
 
@@ -485,6 +705,7 @@ void resize(int width, int height)
 
 	glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 
+	perspectiveProjectionMatrix = perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 }
 
 void display(void)
@@ -494,37 +715,190 @@ void display(void)
 	//Binding Opengl code to shader program object
 	glUseProgram(gShaderProgramObject);
 
+	//matrices
+	mat4 modelViewMatrix;
+	mat4 modelViewProjectionMatrix;
+	mat4 rotationMatrix;
+	mat4 translationMatrix;
 
-	//unbinding
-	glUseProgram(0);
+	//make identity
+	modelViewMatrix = mat4::identity();
+	modelViewProjectionMatrix = mat4::identity();
+	rotationMatrix = mat4::identity();
+	translationMatrix = mat4::identity();
+
+	//do necessary transformation
 	
+	translationMatrix = translate(-1.5f, 0.0f, -6.0f);
+	rotationMatrix = rotate(angleTriangle, 0.0f, 1.0f, 0.0f);
+
+	//do necessary matrix multiplication
+	//this was internally done by gluOrtho() in ffp
+	modelViewMatrix = translationMatrix * rotationMatrix;
+	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
+
+
+	//send necessary matrices to shader in respective uniforms
+	glUniformMatrix4fv(mvpUniform,//which uniform?
+		1,//how many matrices
+		GL_FALSE,//have to transpose?
+		modelViewProjectionMatrix);//actual matrix
+
+	//bind with vao
+	glBindVertexArray(vao_triangle);
+
+	//similarly bind with textures if any
+
+	//now draw the necessary scene
+	glDrawArrays(GL_TRIANGLES,
+		0,
+		3);
+
+	//unbind vao
+	glBindVertexArray(0);
+
+	//-----------------------------Rectangle----------------------
+	//make identity
+	modelViewMatrix = mat4::identity();
+	modelViewProjectionMatrix = mat4::identity();
+	rotationMatrix = mat4::identity();
+	translationMatrix = mat4::identity();
+
+	//do necessary transformation
+	translationMatrix = translate(1.5f, 0.0f, -6.0f);
+	rotationMatrix = rotate(angleRectangle, 1.0f, 0.0f, 0.0f);
+
+	//do necessary matrix multiplication
+	//this was internally done by gluOrtho() in ffp
+	modelViewMatrix = translationMatrix * rotationMatrix;
+	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
+
+
+	//send necessary matrices to shader in respective uniforms
+	glUniformMatrix4fv(mvpUniform,//which uniform?
+		1,//how many matrices
+		GL_FALSE,//have to transpose?
+		modelViewProjectionMatrix);//actual matrix
+
+	//bind with vao
+	glBindVertexArray(vao_rectangle);
+
+	//similarly bind with textures if any
+
+	//now draw the necessary scene
+	glDrawArrays(GL_TRIANGLE_FAN,
+		0,
+		4);
+
+	//unbind vao
+	glBindVertexArray(0);
+	//unbinding program
+	glUseProgram(0);
+
 	SwapBuffers(ghdc);
 
 }
 
 void update(void)
 {
+	angleTriangle = angleTriangle + 1.0f;
+	if (angleTriangle >= 360.0f)
+	{
+		angleTriangle = 0.0f;
+	}
+
+	angleRectangle = angleRectangle - 1.0f;
+
+	if (angleRectangle <= -360.0f)
+	{
+		angleRectangle = 0.0f;
+	}
 }
 
 
 void uninitialize(void)
 {
-	glUseProgram(gShaderProgramObject);
-	
-	glDetachShader(gShaderProgramObject, gFragmentShaderObject);
+	/*if (vbo_color_rectangle)
+	{
+		glDeleteBuffers(1, &vbo_color_rectangle);
+		vbo_color_rectangle = 0;
+	}*/
 
-	glDetachShader(gShaderProgramObject, gVertexShaderObject);
+	if (vbo_position_rectangle)
+	{
+		glDeleteBuffers(1, &vbo_position_rectangle);
+		vbo_position_rectangle = 0;
+	}
 
-	glDeleteShader(gFragmentShaderObject);
-	gFragmentShaderObject = 0;
+	if (vao_rectangle)
+	{
+		glDeleteVertexArrays(1, &vao_rectangle);
+		vao_rectangle = 0;
+	}
 
-	glDeleteShader(gVertexShaderObject);
-	gVertexShaderObject = 0;
+	if (vbo_color_triangle)
+	{
+		glDeleteBuffers(1, &vbo_color_triangle);
+		vbo_color_triangle = 0;
+	}
 
-	glDeleteProgram(gShaderProgramObject);
-	gShaderProgramObject = 0;
+	if (vbo_position_triangle)
+	{
+		glDeleteBuffers(1, &vbo_position_triangle);
+		vbo_position_triangle = 0;
+	}
 
-	glUseProgram(0);
+	if (vao_triangle)
+	{
+		glDeleteVertexArrays(1, &vao_triangle);
+		vao_triangle = 0;
+	}
+
+	if (gShaderProgramObject)
+	{
+		GLsizei shaderCount;
+		GLsizei shaderNumber;
+
+		glUseProgram(gShaderProgramObject);
+
+		//ask the program how many shaders are attached to you?
+		glGetProgramiv(gShaderProgramObject,
+			GL_ATTACHED_SHADERS,
+			&shaderCount);
+
+		GLuint *pShaders = (GLuint *)malloc(sizeof(GLuint) * shaderCount);
+
+		if (pShaders)
+		{
+			//fprintf(gpFile, "\npshaders sucessful\n");
+
+			//get shaders
+			glGetAttachedShaders(gShaderProgramObject,
+				shaderCount,
+				&shaderCount,
+				pShaders);
+
+			for (shaderNumber = 0; shaderNumber < shaderCount; shaderNumber++)
+			{
+				//detach
+				glDetachShader(gShaderProgramObject,
+					pShaders[shaderNumber]);
+
+				//delete
+				glDeleteShader(pShaders[shaderNumber]);
+
+				//explicit 0
+				pShaders[shaderNumber] = 0;
+			}
+
+			free(pShaders);
+		}
+
+		glDeleteProgram(gShaderProgramObject);
+		gShaderProgramObject = 0;
+
+		glUseProgram(0);
+	}
 
 	if (gbFullScreen == true)
 	{
@@ -568,5 +942,3 @@ void uninitialize(void)
 		gpFile = NULL;
 	}
 }
-
-

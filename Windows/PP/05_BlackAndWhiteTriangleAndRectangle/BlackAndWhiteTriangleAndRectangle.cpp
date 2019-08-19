@@ -41,8 +41,12 @@ void update(void);
 void uninitialize(void);
 
 GLuint gShaderProgramObject;
-GLuint vao; // vertex array object
-GLuint vbo; // vertex buffer object
+GLuint vao_triangle;
+GLuint vao_rectangle;// vertex array object
+
+GLuint vbo_position_triangle;
+GLuint vbo_position_rectangle; // vertex buffer object
+
 GLuint mvpUniform; //model view projection uniform
 mat4 perspectiveProjectionMatrix;
 
@@ -383,11 +387,11 @@ int initialize(void)
 	//compile the fragment shader
 	glCompileShader(fragmentShaderObject);
 
-	/*
+	
 	//Error checking for compilation
 	iShaderCompileStatus = 0;
 	iInfoLogLength = 0;
-	*szInfoLog = NULL;
+	szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
 	glGetShaderiv(fragmentShaderObject, // whose?
@@ -428,7 +432,7 @@ int initialize(void)
 			}
 		}
 	}
-	*/
+	
 
 	//create shader program object
 	gShaderProgramObject = glCreateProgram();
@@ -449,22 +453,22 @@ int initialize(void)
 	//Link the shader program
 	glLinkProgram(gShaderProgramObject);//link to whom?
 
-	/*
+	
 	//Error checking for linking
-	GLint iShaderLinkStatus = 0;
+	GLint iProgramLinkStatus = 0;
 	iInfoLogLength = 0;
-	*szInfoLog = NULL;
+	szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(gShaderProgramObject, // whose?
+	glGetProgramiv(gShaderProgramObject, // whose?
 		GL_LINK_STATUS,//what to get?
-		&iShaderLinkStatus);//in what?
+		&iProgramLinkStatus);//in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
-	if (iShaderLinkStatus == GL_FALSE)
+	if (iProgramLinkStatus == GL_FALSE)
 	{
 		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
-		glGetShaderiv(gShaderProgramObject,
+		glGetProgramiv(gShaderProgramObject,
 			GL_INFO_LOG_LENGTH,
 			&iInfoLogLength);
 
@@ -477,7 +481,7 @@ int initialize(void)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(gShaderProgramObject,//whose?
+				glGetProgramInfoLog(gShaderProgramObject,//whose?
 					iInfoLogLength,//length?
 					&written,//might have not used all, give that much only which have been used in what?
 					szInfoLog);//store in what?
@@ -493,7 +497,7 @@ int initialize(void)
 			}
 		}
 	}
-	*/
+	
 
 	//Post-Linking reteriving uniform location
 	mvpUniform = glGetUniformLocation(gShaderProgramObject,
@@ -508,17 +512,23 @@ int initialize(void)
 		-1.0f,-1.0f,0.0f,
 		1.0f,-1.0f,0.0f };
 
+	const GLfloat rectangleVertices[] = {
+		1.0f, 1.0f, 0.0f,
+		-1.0f,1.0f,0.0f,
+		-1.0f,-1.0f,0.0f,
+		1.0f,-1.0f,0.0f };
+
 	//create vao (vertex array object)
-	glGenVertexArrays(1, &vao);
+	glGenVertexArrays(1, &vao_triangle);
 
 	//Bind vao
-	glBindVertexArray(vao);
+	glBindVertexArray(vao_triangle);
 
 	//generate vertex buffers
-	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &vbo_position_triangle);
 
 	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_triangle);
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
@@ -543,7 +553,43 @@ int initialize(void)
 	//unbind vao
 	glBindVertexArray(0);
 
-	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+
+	//create vao rectangle(vertex array object)
+	glGenVertexArrays(1, &vao_rectangle);
+
+	//Bind vao
+	glBindVertexArray(vao_rectangle);
+
+	//generate vertex buffers
+	glGenBuffers(1, &vbo_position_rectangle);
+
+	//bind buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_rectangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(rectangleVertices),
+		rectangleVertices,
+		GL_STATIC_DRAW);
+
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		NULL);
+
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//unbind vao
+	glBindVertexArray(0);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -588,7 +634,7 @@ void display(void)
 	translationMatrix = mat4::identity();
 
 	//do necessary transformation
-	translationMatrix = translate(0.0f, 0.0f, -6.0f);
+	translationMatrix = translate(-1.5f, 0.0f, -6.0f);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
@@ -603,7 +649,7 @@ void display(void)
 		modelViewProjectionMatrix);//actual matrix
 
 	//bind with vao
-	glBindVertexArray(vao);
+	glBindVertexArray(vao_triangle);
 
 	//similarly bind with textures if any
 
@@ -615,6 +661,39 @@ void display(void)
 	//unbind vao
 	glBindVertexArray(0);
 
+	//-----------------------------Rectangle----------------------
+	//make identity
+	modelViewMatrix = mat4::identity();
+	modelViewProjectionMatrix = mat4::identity();
+	translationMatrix = mat4::identity();
+
+	//do necessary transformation
+	translationMatrix = translate(1.5f, 0.0f, -6.0f);
+
+	//do necessary matrix multiplication
+	//this was internally done by gluOrtho() in ffp
+	modelViewMatrix = modelViewMatrix * translationMatrix;
+	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
+
+
+	//send necessary matrices to shader in respective uniforms
+	glUniformMatrix4fv(mvpUniform,//which uniform?
+		1,//how many matrices
+		GL_FALSE,//have to transpose?
+		modelViewProjectionMatrix);//actual matrix
+
+	//bind with vao
+	glBindVertexArray(vao_rectangle);
+
+	//similarly bind with textures if any
+
+	//now draw the necessary scene
+	glDrawArrays(GL_TRIANGLE_FAN,
+		0,
+		4);
+
+	//unbind vao
+	glBindVertexArray(0);
 	//unbinding program
 	glUseProgram(0);
 
@@ -630,16 +709,28 @@ void update(void)
 void uninitialize(void)
 {
 
-	if (vbo)
+	if (vbo_position_rectangle)
 	{
-		glDeleteBuffers(1, &vbo);
-		vbo = 0;
+		glDeleteBuffers(1, &vbo_position_rectangle);
+		vbo_position_rectangle = 0;
 	}
 
-	if (vao)
+	if (vao_rectangle)
 	{
-		glDeleteVertexArrays(1, &vao);
-		vao = 0;
+		glDeleteVertexArrays(1, &vao_rectangle);
+		vao_rectangle = 0;
+	}
+
+	if (vbo_position_triangle)
+	{
+		glDeleteBuffers(1, &vbo_position_triangle);
+		vbo_position_triangle = 0;
+	}
+
+	if (vao_triangle)
+	{
+		glDeleteVertexArrays(1, &vao_triangle);
+		vao_triangle = 0;
 	}
 
 	if (gShaderProgramObject)
