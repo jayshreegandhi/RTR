@@ -3,6 +3,7 @@
 #include<gl/GL.h>
 #include<stdio.h>
 #include"vmath.h"
+#include"TextureSmiley.h"
 
 #pragma comment(lib,"glew32.lib")
 #pragma comment(lib,"opengl32.lib")
@@ -39,15 +40,19 @@ void resize(int, int);
 void display(void);
 void update(void);
 void uninitialize(void);
+BOOL loadTexture(GLuint *, TCHAR[]);
 
 GLuint gShaderProgramObject;
-GLuint vao_triangle;
 GLuint vao_rectangle;// vertex array object
 
-GLuint vbo_position_triangle;
 GLuint vbo_position_rectangle; // vertex buffer object
 
+GLuint vbo_texture; // texture buffer object
+GLuint texture_smile;
+
 GLuint mvpUniform; //model view projection uniform
+GLuint samplerUniform;
+
 mat4 perspectiveProjectionMatrix;
 
 
@@ -235,6 +240,58 @@ void ToggleFullScreen(void)
 	}
 }
 
+BOOL loadTexture(GLuint *texture, TCHAR imageResourceID[])
+{
+	HBITMAP hBitmap = NULL;
+	BITMAP bmp;
+	BOOL bStatus = FALSE;
+
+	hBitmap = (HBITMAP)LoadImage(GetModuleHandle(NULL),
+		imageResourceID,
+		IMAGE_BITMAP,
+		0,
+		0,
+		LR_CREATEDIBSECTION);
+
+	if (hBitmap)
+	{
+		bStatus = TRUE;
+		GetObject(hBitmap, sizeof(BITMAP), &bmp);
+
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		glGenTextures(1, texture);
+		glBindTexture(GL_TEXTURE_2D, *texture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		
+		/*gluBuild2DMipmaps(GL_TEXTURE_2D,
+			3,
+			bmp.bmWidth,
+			bmp.bmHeight,
+			GL_BGR_EXT,
+			GL_UNSIGNED_BYTE,
+			bmp.bmBits);*/
+
+		glTexImage2D(GL_TEXTURE_2D,
+			0,
+			GL_RGB,
+			bmp.bmWidth,
+			bmp.bmHeight,
+			0,
+			GL_BGR,
+			GL_UNSIGNED_BYTE,
+			bmp.bmBits);
+
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		DeleteObject(hBitmap);
+	}
+
+	return(bStatus);
+}
+
+
 int initialize(void)
 {
 
@@ -302,10 +359,13 @@ int initialize(void)
 		"#version 450 core" \
 		"\n" \
 		"in vec4 vPosition;" \
+		"in vec2 vTexCoord;" \
 		"uniform mat4 u_mvp_matrix;" \
+		"out vec2 out_texcoord;" \
 		"void main(void)" \
 		"{" \
 		"gl_Position = u_mvp_matrix * vPosition;" \
+		"out_texcoord = vTexCoord;" \
 		"}";
 
 	//specify above source code to vertex shader object
@@ -372,10 +432,12 @@ int initialize(void)
 	const GLchar *fragmentShaderSourceCode =
 		"#version 450 core" \
 		"\n" \
+		"in vec2 out_texcoord;" \
+		"uniform sampler2D u_sampler;" \
 		"out vec4 fragColor;" \
 		"void main(void)" \
 		"{" \
-		"fragColor = vec4(1.0,1.0,1.0,1.0);" \
+		"fragColor = texture(u_sampler, out_texcoord);" \
 		"}";
 
 	//specify the above source code to fragment shader object
@@ -450,6 +512,10 @@ int initialize(void)
 		AMC_ATTRIBUTE_POSITION,
 		"vPosition");
 
+	glBindAttribLocation(gShaderProgramObject,
+		AMC_ATTRIBUTE_TEXCOORD0,
+		"vTexCoord");
+
 	//Link the shader program
 	glLinkProgram(gShaderProgramObject);//link to whom?
 
@@ -503,14 +569,13 @@ int initialize(void)
 	mvpUniform = glGetUniformLocation(gShaderProgramObject,
 		"u_mvp_matrix");
 
+	samplerUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_sampler");
+
 	//above is the preparation of data transfer from CPU to GPU 
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
 	//array initialization (glBegin() and glEnd())
-	const GLfloat traingleVertices[] = {
-		0.0f,1.0f,0.0f,
-		-1.0f,-1.0f,0.0f,
-		1.0f,-1.0f,0.0f };
 
 	const GLfloat rectangleVertices[] = {
 		1.0f, 1.0f, 0.0f,
@@ -518,41 +583,12 @@ int initialize(void)
 		-1.0f,-1.0f,0.0f,
 		1.0f,-1.0f,0.0f };
 
-	//create vao (vertex array object)
-	glGenVertexArrays(1, &vao_triangle);
-
-	//Bind vao
-	glBindVertexArray(vao_triangle);
-
-	//generate vertex buffers
-	glGenBuffers(1, &vbo_position_triangle);
-
-	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_triangle);
-
-	//transfer vertex data(CPU) to GPU buffer
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(traingleVertices),
-		traingleVertices,
-		GL_STATIC_DRAW);
-
-	//attach or map attribute pointer to vbo's buffer
-	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		NULL);
-
-	//enable vertex attribute array
-	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
-
-	//unbind vbo
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//unbind vao
-	glBindVertexArray(0);
-
+	const GLfloat rectangleTexCoord[] = {
+		1.0f, 1.0f,
+		0.0f,1.0f,
+		0.0f,0.0f,
+		1.0f,0.0f };
+	
 
 	//create vao rectangle(vertex array object)
 	glGenVertexArrays(1, &vao_rectangle);
@@ -586,6 +622,33 @@ int initialize(void)
 	//unbind vbo
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	//--------------------texture------------------
+	//generate vertex buffers
+	glGenBuffers(1, &vbo_texture);
+
+	//bind buffer
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_texture);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(rectangleTexCoord),
+		rectangleTexCoord,
+		GL_STATIC_DRAW);
+
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_TEXCOORD0,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		NULL);
+
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_TEXCOORD0);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	//unbind vao
 	glBindVertexArray(0);
 
@@ -594,6 +657,10 @@ int initialize(void)
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+
+	//enable texture
+	glEnable(GL_TEXTURE_2D);
+	loadTexture(&texture_smile, MAKEINTRESOURCE(IDBITMAP_SMILE));
 
 	//make identity
 	perspectiveProjectionMatrix = mat4::identity();
@@ -628,38 +695,6 @@ void display(void)
 	mat4 modelViewProjectionMatrix;
 	mat4 translationMatrix;
 
-	//make identity
-	modelViewMatrix = mat4::identity();
-	modelViewProjectionMatrix = mat4::identity();
-	translationMatrix = mat4::identity();
-
-	//do necessary transformation
-	translationMatrix = translate(-1.5f, 0.0f, -6.0f);
-
-	//do necessary matrix multiplication
-	//this was internally done by gluOrtho() in ffp
-	modelViewMatrix = modelViewMatrix * translationMatrix;
-	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
-
-
-	//send necessary matrices to shader in respective uniforms
-	glUniformMatrix4fv(mvpUniform,//which uniform?
-		1,//how many matrices
-		GL_FALSE,//have to transpose?
-		modelViewProjectionMatrix);//actual matrix
-
-	//bind with vao
-	glBindVertexArray(vao_triangle);
-
-	//similarly bind with textures if any
-
-	//now draw the necessary scene
-	glDrawArrays(GL_TRIANGLES,
-		0,
-		3);
-
-	//unbind vao
-	glBindVertexArray(0);
 
 	//-----------------------------Rectangle----------------------
 	//make identity
@@ -668,7 +703,7 @@ void display(void)
 	translationMatrix = mat4::identity();
 
 	//do necessary transformation
-	translationMatrix = translate(1.5f, 0.0f, -6.0f);
+	translationMatrix = translate(0.0f, 0.0f, -6.0f);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
@@ -682,10 +717,15 @@ void display(void)
 		GL_FALSE,//have to transpose?
 		modelViewProjectionMatrix);//actual matrix
 
+	//Before binding to vao, work with texture
+	//similarly bind with textures if any
+	glActiveTexture(GL_TEXTURE0);
+	
+	glBindTexture(GL_TEXTURE_2D, texture_smile);
+	glUniform1i(samplerUniform, 0);
+	
 	//bind with vao
 	glBindVertexArray(vao_rectangle);
-
-	//similarly bind with textures if any
 
 	//now draw the necessary scene
 	glDrawArrays(GL_TRIANGLE_FAN,
@@ -708,6 +748,16 @@ void update(void)
 
 void uninitialize(void)
 {
+	if (texture_smile)
+	{
+		glDeleteTextures(1, &texture_smile);
+	}
+
+	if (vbo_texture)
+	{
+		glDeleteBuffers(1, &vbo_texture);
+		vbo_texture = 0;
+	}
 
 	if (vbo_position_rectangle)
 	{
@@ -721,17 +771,7 @@ void uninitialize(void)
 		vao_rectangle = 0;
 	}
 
-	if (vbo_position_triangle)
-	{
-		glDeleteBuffers(1, &vbo_position_triangle);
-		vbo_position_triangle = 0;
-	}
-
-	if (vao_triangle)
-	{
-		glDeleteVertexArrays(1, &vao_triangle);
-		vao_triangle = 0;
-	}
+	
 
 	if (gShaderProgramObject)
 	{
