@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "11_CheckerBoard", "11_CheckerBoard.vcxproj", "{667B240B-3137-44C7-ABFF-28ECB6A65994}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Debug|x64.ActiveCfg = Debug|x64
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Debug|x64.Build.0 = Debug|x64
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Debug|x86.ActiveCfg = Debug|Win32
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Debug|x86.Build.0 = Debug|Win32
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Release|x64.ActiveCfg = Release|x64
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Release|x64.Build.0 = Release|x64
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Release|x86.ActiveCfg = Release|Win32
+		{667B240B-3137-44C7-ABFF-28ECB6A65994}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9325908D-C7FF-488D-BEF1-F795CAD7AC9B}
+	EndGlobalSection
+EndGlobal
