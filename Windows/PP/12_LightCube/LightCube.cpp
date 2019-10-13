@@ -839,7 +839,7 @@ void display(void)
 
 void update(void)
 {
-	angleCube = angleCube - 0.05f;
+	angleCube = angleCube - 1.0f;
 
 	if (angleCube <= -360.0f)
 	{
