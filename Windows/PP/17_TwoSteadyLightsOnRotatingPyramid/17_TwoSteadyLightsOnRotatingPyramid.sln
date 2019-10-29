@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "17_TwoSteadyLightsOnRotatingPyramid", "17_TwoSteadyLightsOnRotatingPyramid.vcxproj", "{25D07A45-40E9-4756-9F00-B27BD7023F2A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Debug|x64.ActiveCfg = Debug|x64
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Debug|x64.Build.0 = Debug|x64
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Debug|x86.ActiveCfg = Debug|Win32
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Debug|x86.Build.0 = Debug|Win32
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Release|x64.ActiveCfg = Release|x64
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Release|x64.Build.0 = Release|x64
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Release|x86.ActiveCfg = Release|Win32
+		{25D07A45-40E9-4756-9F00-B27BD7023F2A}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9C1362E8-AE3D-4090-BC5E-AA2708C5C01D}
+	EndGlobalSection
+EndGlobal
