@@ -1,0 +1,4 @@
+Log file created successfully...
+
+The obtained context is a hardware context
+Log file closed successfully
