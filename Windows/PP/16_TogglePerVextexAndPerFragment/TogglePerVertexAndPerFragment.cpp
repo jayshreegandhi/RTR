@@ -1,5 +1,5 @@
 #include<windows.h>
-#include<GL/glew.h> //Wrangler For PP , add additional headers and lib path 
+#include<GL/glew.h> //Wrangler For PP , add additional headers and lib path
 #include<gl/GL.h>
 #include<stdio.h>
 #include"vmath.h"
@@ -388,10 +388,10 @@ int initialize(void)
 	GLuint vertexShaderObject_perFrag;
 	GLuint vertexShaderObject_perVert;
 
-	GLuint fragmentShaderObject_perFrag;	
+	GLuint fragmentShaderObject_perFrag;
 	GLuint fragmentShaderObject_perVert;
 
-	//***************** 1. VERTEX SHADER ************************************ 
+	//***************** 1. VERTEX SHADER ************************************
 	//define vertex shader object
 	//create vertex shader object
 	vertexShaderObject_perFrag = glCreateShader(GL_VERTEX_SHADER);
@@ -935,7 +935,7 @@ int initialize(void)
 	materialShininessUniform_pv = glGetUniformLocation(gShaderProgramObject_perVert,
 		"u_material_shininess");
 
-	//above is the preparation of data transfer from CPU to GPU 
+	//above is the preparation of data transfer from CPU to GPU
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
 	//array initialization (glBegin() and glEnd())
@@ -1203,7 +1203,7 @@ void display(void)
 		//unbinding program
 		glUseProgram(0);
 	}
-	
+
 	SwapBuffers(ghdc);
 
 }
