@@ -346,43 +346,43 @@ int initialize(void)
 
 	//Write vertex shader code
 	const GLchar *vertexShaderSourceCode =
-		"#version 450 core" \
-		"\n" \
-		"in vec4 vPosition;" \
-		"in vec3 vNormal;" \
-		"uniform mat4 u_view_matrix;" \
-		"uniform mat4 u_model_matrix;" \
-		"uniform mat4 u_projection_matrix;" \
-		"uniform int u_lKeyPressed;" \
-		"uniform vec3 u_la;" \
-		"uniform vec3 u_ld;" \
-		"uniform vec3 u_ls;" \
-		"uniform vec4 u_light_position;" \
-		"uniform vec3 u_ka;" \
-		"uniform vec3 u_kd;" \
-		"uniform vec3 u_ks;" \
-		"uniform float u_material_shininess;" \
-		"out vec3 phong_ads_light;" \
-		"void main(void)" \
-		"{" \
-		"if(u_lKeyPressed == 1)" \
-		"{" \
-		"vec4 eyeCoords = u_view_matrix * u_model_matrix * vPosition;" \
-		"vec3 tNormal = normalize(mat3(u_view_matrix * u_model_matrix) * vNormal);" \
-		"vec3 light_direction = normalize(vec3(u_light_position - eyeCoords));" \
-		"float tNorm_Dot_LightDirection = max(dot(light_direction, tNormal), 0.0);" \
-		"vec3 reflection_vector = reflect(-light_direction, tNormal);" \
-		"vec3 viewer_vector = normalize(vec3(-eyeCoords.xyz));" \
-		"vec3 ambient = u_la * u_ka;" \
-		"vec3 diffuse = u_ld * u_kd * tNorm_Dot_LightDirection;" \
-		"vec3 specular = u_ls * u_ks * pow(max(dot(reflection_vector,viewer_vector), 0.0), u_material_shininess);" \
-		"phong_ads_light = ambient + diffuse + specular;" \
-		"}" \
-		"else" \
-		"{" \
-		"phong_ads_light = vec3(1.0, 1.0, 1.0);" \
-		"}" \
-		"gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * vPosition;" \
+		"#version 450 core"
+		"\n"
+		"in vec4 vPosition;"
+		"in vec3 vNormal;"
+		"uniform mat4 u_view_matrix;"
+		"uniform mat4 u_model_matrix;"
+		"uniform mat4 u_projection_matrix;"
+		"uniform int u_lKeyPressed;"
+		"uniform vec3 u_la;"
+		"uniform vec3 u_ld;"
+		"uniform vec3 u_ls;"
+		"uniform vec4 u_light_position;"
+		"uniform vec3 u_ka;"
+		"uniform vec3 u_kd;"
+		"uniform vec3 u_ks;"
+		"uniform float u_material_shininess;"
+		"out vec3 phong_ads_light;"
+		"void main(void)"
+		"{"
+		"if(u_lKeyPressed == 1)"
+		"{"
+		"vec4 eyeCoords = u_view_matrix * u_model_matrix * vPosition;"
+		"vec3 tNormal = normalize(mat3(u_view_matrix * u_model_matrix) * vNormal);"
+		"vec3 light_direction = normalize(vec3(u_light_position - eyeCoords));"
+		"float tNorm_Dot_LightDirection = max(dot(light_direction, tNormal), 0.0);"
+		"vec3 reflection_vector = reflect(-light_direction, tNormal);"
+		"vec3 viewer_vector = normalize(vec3(-eyeCoords.xyz));"
+		"vec3 ambient = u_la * u_ka;"
+		"vec3 diffuse = u_ld * u_kd * tNorm_Dot_LightDirection;"
+		"vec3 specular = u_ls * u_ks * pow(max(dot(reflection_vector,viewer_vector), 0.0), u_material_shininess);"
+		"phong_ads_light = ambient + diffuse + specular;"
+		"}"
+		"else"
+		"{"
+		"phong_ads_light = vec3(1.0, 1.0, 1.0);"
+		"}"
+		"gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * vPosition;"
 		"}";
 
 	//specify above source code to vertex shader object
@@ -445,14 +445,14 @@ int initialize(void)
 
 	//write fragment shader code
 	const GLchar *fragmentShaderSourceCode =
-		"#version 450 core" \
-		"\n" \
-		"uniform int u_lKeyPressed;" \
-		"in vec3 phong_ads_light;" \
-		"out vec4 fragColor;" \
-		"void main(void)" \
-		"{" \
-		"fragColor = vec4(phong_ads_light,1.0);" \
+		"#version 450 core"
+		"\n"
+		"uniform int u_lKeyPressed;"
+		"in vec3 phong_ads_light;"
+		"out vec4 fragColor;"
+		"void main(void)"
+		"{"
+		"fragColor = vec4(phong_ads_light,1.0);"
 		"}";
 
 	//specify the above source code to fragment shader object
@@ -780,14 +780,14 @@ void display(void)
 	if (gbLight == true)
 	{
 		glUniform1i(lKeyPressedUniform, 1);
-		glUniform3fv(laUniform, 1, LightAmbient);
-		glUniform3fv(ldUniform, 1, LightDiffuse);
-		glUniform3fv(lsUniform, 1, LightSpecular);
-		glUniform3fv(kaUniform, 1, MaterialAmbient);
-		glUniform3fv(kdUniform, 1, MaterialDiffuse);
-		glUniform3fv(ksUniform, 1, MaterialSpecular);
+		glUniform3fv(laUniform, LightAmbient);
+		glUniform3fv(ldUniform, LightDiffuse);
+		glUniform3fv(lsUniform, LightSpecular);
+		glUniform3fv(kaUniform, MaterialAmbient);
+		glUniform3fv(kdUniform, MaterialDiffuse);
+		glUniform3fv(ksUniform, MaterialSpecular);
 		glUniform1f(materialShininessUniform, MaterialShininess);
-		glUniform4fv(lightPositionUniform, 1, LightPosition);
+		glUniform4fv(lightPositionUniform, LightPosition);
 	}
 	else
 	{
