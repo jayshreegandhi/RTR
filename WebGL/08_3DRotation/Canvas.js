@@ -581,7 +581,7 @@ function uninitialize() {
 
     if (vbo_position_cube) {
         gl.deleteBuffer(vbo_position_cube);
-        vbo = null;
+        vbo_position_cube = null;
     }
 
     if (vbo_color_cube) {
