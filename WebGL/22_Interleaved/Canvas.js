@@ -40,7 +40,7 @@ var lKeyPressedUniform;
 var LightAmbient = [0.25, 0.25, 0.25];
 var LightDiffuse = [1.0, 1.0, 1.0];
 var LightSpecular = [1.0, 1.0, 1.0];
-var LightPosition = [100.0, 100.0, 100.0, 1.0];
+var LightPosition = [0.0, 0.0, 0.0, 1.0];
 
 var MaterialAmbient = [0.0, 0.0, 0.0];
 var MaterialDiffuse = [1.0, 1.0, 1.0];
