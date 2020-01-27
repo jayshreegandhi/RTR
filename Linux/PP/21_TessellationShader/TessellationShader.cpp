@@ -12,8 +12,6 @@
 #include<GL/gl.h>
 #include<GL/glx.h>
 
-#include<SOIL/SOIL.h>
-
 #include"vmath.h"
 
 using namespace std;
@@ -47,28 +45,22 @@ GLXFBConfig gGLXFBConfig;
 static GLXContext gGLXContext;
 bool bDone = false;
 
-GLuint gVertexShaderObject;
-GLuint gFragmentShaderObject;
 GLuint gShaderProgramObject;
+GLuint gVertexShaderObject;
+GLuint gTessellationControlShaderObject;
+GLuint gTessellationEvaluationShaderObject;
+GLuint gFragmentShaderObject;
 
-GLuint vao_pyramid;
-GLuint vao_cube;// vertex array object
-
-GLuint vbo_position_pyramid;
-GLuint vbo_position_cube; // vertex buffer object
-
-GLuint vbo_texture_pyramid; // texture buffer object
-GLuint vbo_texture_cube;
-GLuint texture_stone;
-GLuint texture_kundali;
-
-GLfloat anglePyramid = 0.0f;
-GLfloat angleCube = 0.0f;
-
+GLuint vao; // vertex array object
+GLuint vbo; // vertex buffer object
 GLuint mvpUniform; //model view projection uniform
-GLuint samplerUniform;
-
 mat4 perspectiveProjectionMatrix;
+
+GLuint gNumberOfSegmentsUniform;
+GLuint gNumberOfStripsUniform;
+GLuint gLineColorUniform;
+
+unsigned int gNumberOfLineSegments;
 
 //function prototypes
 void CreateWindow(void);
@@ -79,7 +71,6 @@ void initialize(void);
 void resize(int,int);
 void display(void);
 void update(void);
-bool loadTexture(GLuint *, const char *);
 
 int main(void)
 {
@@ -122,6 +113,22 @@ int main(void)
 					{
 						case XK_Escape:
 							bDone = true;
+							break;
+
+						case XK_Up:
+							gNumberOfLineSegments++;
+							if (gNumberOfLineSegments >= 50)
+							{
+								gNumberOfLineSegments = 50;
+							}
+							break;
+
+						case XK_Down:
+							gNumberOfLineSegments--;
+							if (gNumberOfLineSegments <= 0)
+							{
+								gNumberOfLineSegments = 1;
+							}
 							break;
 
 						case XK_F:
@@ -292,21 +299,6 @@ void CreateWindow(void)
 	//accordingly get the best visual
 	gpXVisualInfo = glXGetVisualFromFBConfig(gpDisplay, bestGLXFBConfig);
 	
-	/*
-	//Bridging API gives you visual in opengl code
-	gpXVisualInfo = glXChooseVisual(gpDisplay, defaultScreen, frameBufferAttribute);
-	
-
-	if(gpXVisualInfo == NULL)
-	{
-		printf("\n18");
-		fprintf(gpFile, "\nERROR : Unable to get XVisualInfo .Exitting now..\n");
-		printf("\nERROR : Unable to get XVisualInfo.\nExitting now..\n");
-		uninitialize();
-		exit(1);
-	}
-	*/
-
 	winAttribs.border_pixel = 0;
 	winAttribs.border_pixmap = 0;
 	winAttribs.colormap = XCreateColormap(gpDisplay, 
@@ -385,54 +377,6 @@ void ToggleFullscreen(void)
 			&xev);
 }
 
-bool loadTexture(GLuint *texture, const char* path)
-{
-	bool bResult = false;
-	int imageWidth;
-	int imageHeight;
-	unsigned char* imageData = NULL;
-
-	imageData = SOIL_load_image(path,
-		&imageWidth,
-		&imageHeight,
-		0,
-		SOIL_LOAD_RGB);
-
-	if(imageData == NULL)
-	{
-		bResult = false;
-		return(bResult);
-	}
-	else
-	{
-		bResult = true;
-	}
-	
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	glGenTextures(1, texture);
-	glBindTexture(GL_TEXTURE_2D, *texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	
-	glTexImage2D(GL_TEXTURE_2D,
-			0,
-			GL_RGB,
-			imageWidth,
-			imageHeight,
-			0,
-			GL_BGR,
-			GL_UNSIGNED_BYTE,
-			imageData);
-
-	
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	SOIL_free_image_data(imageData);
-
-	return(bResult);
-}
-
 
 void initialize(void)
 {
@@ -473,6 +417,7 @@ void initialize(void)
 			GLX_CONTEXT_MINOR_VERSION_ARB, 0,
 			None
 		};
+		printf("\ni8");
 		gGLXContext = glXCreateContextAttribsARB(gpDisplay,
 			gGLXFBConfig,
 			0,
@@ -513,14 +458,10 @@ void initialize(void)
 	const GLchar *vertexShaderSourceCode =
 		"#version 450 core" \
 		"\n" \
-		"in vec4 vPosition;" \
-		"in vec2 vTexCoord;" \
-		"uniform mat4 u_mvp_matrix;" \
-		"out vec2 out_texcoord;" \
+		"in vec2 vPosition;" \
 		"void main(void)" \
 		"{" \
-		"gl_Position = u_mvp_matrix * vPosition;" \
-		"out_texcoord = vTexCoord;" \
+		"gl_Position = vec4(vPosition, 0.0, 1.0);" \
 		"}";
 
 	//specify above source code to vertex shader object
@@ -576,8 +517,163 @@ void initialize(void)
 		}
 	}
 
+	//************************** 2.TC SHADER ********************************
+	//define TC shader object
+	//create TC shader object
+	gTessellationControlShaderObject = glCreateShader(GL_TESS_CONTROL_SHADER);
 
-	//************************** 2. FRAGMENT SHADER ********************************
+	//write fragment shader code
+	const GLchar *tessellationControlShaderSourceCode =
+		"#version 450 core" \
+		"\n" \
+		"layout(vertices=4)out;" \
+		"uniform int u_numberOfSegments;" \
+		"uniform int u_numberOfStrips;" \
+		"void main(void)" \
+		"{" \
+		"	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;" \
+		"	gl_TessLevelOuter[0] = float(u_numberOfStrips);" \
+		"	gl_TessLevelOuter[1] = float(u_numberOfSegments);" \
+		"}";
+
+
+	//specify the above source code to fragment shader object
+	glShaderSource(gTessellationControlShaderObject,
+		1,
+		(const GLchar **)&tessellationControlShaderSourceCode,
+		NULL);
+
+	//compile the fragment shader
+	glCompileShader(gTessellationControlShaderObject);
+
+	
+	//Error checking for compilation
+	iShaderCompileStatus = 0;
+	iInfoLogLength = 0;
+	szInfoLog = NULL;
+
+	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
+	glGetShaderiv(gTessellationControlShaderObject, // whose?
+		GL_COMPILE_STATUS,//what to get?
+		&iShaderCompileStatus);//in what?
+
+	//Step 2 : Check shader compile status for GL_FALSE
+	if (iShaderCompileStatus == GL_FALSE)
+	{
+		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length 
+		glGetShaderiv(gTessellationControlShaderObject,
+			GL_INFO_LOG_LENGTH,
+			&iInfoLogLength);
+
+		//Step 4 : if info log length > 0 , call glGetShaderInfoLog()
+		if (iInfoLogLength > 0)
+		{
+			//allocate memory to pointer
+			szInfoLog = (GLchar *)malloc(iInfoLogLength);
+			if (szInfoLog != NULL)
+			{
+				GLsizei written;
+
+				glGetShaderInfoLog(gTessellationControlShaderObject,//whose?
+					iInfoLogLength,//length?
+					&written,//might have not used all, give that much only which have been used in what?
+					szInfoLog);//store in what?
+
+				fprintf(gpFile, "\nTC Shader Compilation Log : %s\n", szInfoLog);
+
+				//free the memory
+				free(szInfoLog);
+
+				uninitialize();
+				exit(0);
+			}
+		}
+	}
+
+	//************************** 3.TE SHADER ********************************
+	//define TE shader object
+	//create TE shader object
+	gTessellationEvaluationShaderObject = glCreateShader(GL_TESS_EVALUATION_SHADER);
+
+	//write fragment shader code
+	const GLchar *tessellationEvaluationShaderSourceCode =
+		"#version 450 core" \
+		"\n" \
+		"layout(isolines)in;" \
+		"uniform mat4 u_mvp_matrix;" \
+		"void main(void)" \
+		"{" \
+		"	float u = gl_TessCoord.x;" \
+		"	vec3 p0 = gl_in[0].gl_Position.xyz;" \
+		"	vec3 p1 = gl_in[1].gl_Position.xyz;" \
+		"	vec3 p2 = gl_in[2].gl_Position.xyz;" \
+		"	vec3 p3 = gl_in[3].gl_Position.xyz;" \
+		"	float u1 = (1.0 - u);" \
+		"	float u2 = u * u;" \
+		"	float b3 = u2 * u;" \
+		"	float b2 = 3.0 * u2 * u1;" \
+		"	float b1 = 3.0 * u * u1 * u1;" \
+		"	float b0 = u1 * u1 * u1;" \
+		"	vec3 p = p0 * b0 + p1 * b1 + p2 * b2 + p3 * b3;" \
+		"	gl_Position = u_mvp_matrix * vec4(p, 1.0);" \
+		"}";
+
+
+	//specify the above source code to fragment shader object
+	glShaderSource(gTessellationEvaluationShaderObject,
+		1,
+		(const GLchar **)&tessellationEvaluationShaderSourceCode,
+		NULL);
+
+	//compile the fragment shader
+	glCompileShader(gTessellationEvaluationShaderObject);
+
+	
+	//Error checking for compilation
+	iShaderCompileStatus = 0;
+	iInfoLogLength = 0;
+	szInfoLog = NULL;
+
+	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
+	glGetShaderiv(gTessellationEvaluationShaderObject, // whose?
+		GL_COMPILE_STATUS,//what to get?
+		&iShaderCompileStatus);//in what?
+
+	//Step 2 : Check shader compile status for GL_FALSE
+	if (iShaderCompileStatus == GL_FALSE)
+	{
+		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length 
+		glGetShaderiv(gTessellationEvaluationShaderObject,
+			GL_INFO_LOG_LENGTH,
+			&iInfoLogLength);
+
+		//Step 4 : if info log length > 0 , call glGetShaderInfoLog()
+		if (iInfoLogLength > 0)
+		{
+			//allocate memory to pointer
+			szInfoLog = (GLchar *)malloc(iInfoLogLength);
+			if (szInfoLog != NULL)
+			{
+				GLsizei written;
+
+				glGetShaderInfoLog(gTessellationEvaluationShaderObject,//whose?
+					iInfoLogLength,//length?
+					&written,//might have not used all, give that much only which have been used in what?
+					szInfoLog);//store in what?
+
+				fprintf(gpFile, "\nTE Shader Compilation Log : %s\n", szInfoLog);
+
+				//free the memory
+				free(szInfoLog);
+
+				uninitialize();
+				exit(0);
+			}
+		}
+	}
+
+
+	//************************** 4. FRAGMENT SHADER ********************************
 	//define fragment shader object
 	//create fragment shader object
 	gFragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
@@ -586,13 +682,13 @@ void initialize(void)
 	const GLchar *fragmentShaderSourceCode =
 		"#version 450 core" \
 		"\n" \
-		"in vec2 out_texcoord;" \
-		"uniform sampler2D u_sampler;" \
+		"uniform vec4 u_lineColor;" \
 		"out vec4 fragColor;" \
 		"void main(void)" \
 		"{" \
-		"fragColor = texture(u_sampler, out_texcoord);" \
+		"fragColor = u_lineColor;" \
 		"}";
+
 
 	//specify the above source code to fragment shader object
 	glShaderSource(gFragmentShaderObject,
@@ -654,6 +750,14 @@ void initialize(void)
 	glAttachShader(gShaderProgramObject,//to whom?
 		gVertexShaderObject);//what to attach?
 
+	//Attach TC shader to shader program
+	glAttachShader(gShaderProgramObject,//to whom?
+		gTessellationControlShaderObject);//what to attach?
+
+	//Attach TC shader to shader program
+	glAttachShader(gShaderProgramObject,//to whom?
+		gTessellationEvaluationShaderObject);//what to attach?
+
 	//Attach fragment shader to shader program
 	glAttachShader(gShaderProgramObject,
 		gFragmentShaderObject);
@@ -662,10 +766,7 @@ void initialize(void)
 	glBindAttribLocation(gShaderProgramObject,
 		AMC_ATTRIBUTE_POSITION,
 		"vPosition");
-		
-	glBindAttribLocation(gShaderProgramObject,
-		AMC_ATTRIBUTE_TEXCOORD0,
-		"vTexCoord");
+
 
 	//Link the shader program
 	glLinkProgram(gShaderProgramObject);//link to whom?
@@ -718,115 +819,48 @@ void initialize(void)
 	//Post-Linking reteriving uniform location
 	mvpUniform = glGetUniformLocation(gShaderProgramObject,
 		"u_mvp_matrix");
-		
-	samplerUniform = glGetUniformLocation(gShaderProgramObject,
-		"u_sampler");
+
+	gNumberOfSegmentsUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_numberOfSegments");
+
+	gNumberOfStripsUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_numberOfStrips");
+
+	gLineColorUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_lineColor");
 
 	//above is the preparation of data transfer from CPU to GPU 
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
 	//array initialization (glBegin() and glEnd())
-	const GLfloat pyramidVertices[] = {
-		-1.0f, -1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, -1.0f };
+	const GLfloat vertices[] = {
+		-1.0f,-1.0f,
+		-0.5f,1.0f,
+		0.5f,-1.0f,
+		1.0f,-1.0f };
 
-	const GLfloat cubeVertices[] = {
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f };
-
-	const GLfloat pyramidTexCoord[] = {
-		0.5f, 1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		0.5f,1.0f,
-		1.0f,0.0f,
-		0.0f,0.0f,
-		0.5f,1.0f,
-		1.0f,0.0f,
-		0.0f,0.0f,
-		0.5f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f};
-
-	const GLfloat cubeTexCoord[] = {
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f };
 
 	//create vao (vertex array object)
-	glGenVertexArrays(1, &vao_pyramid);
+	glGenVertexArrays(1, &vao);
 
 	//Bind vao
-	glBindVertexArray(vao_pyramid);
-	//---------------------position---------------------------
+	glBindVertexArray(vao);
+
 	//generate vertex buffers
-	glGenBuffers(1, &vbo_position_pyramid);
+	glGenBuffers(1, &vbo);
 
 	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_pyramid);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(pyramidVertices),
-		pyramidVertices,
+		8 * sizeof(float),
+		vertices,
 		GL_STATIC_DRAW);
 
 	//attach or map attribute pointer to vbo's buffer
 	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
-		3,
+		2,
 		GL_FLOAT,
 		GL_FALSE,
 		0,
@@ -838,118 +872,18 @@ void initialize(void)
 	//unbind vbo
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	//--------------------texture------------------
-	//generate vertex buffers
-	glGenBuffers(1, &vbo_texture_pyramid);
-
-	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_texture_pyramid);
-
-	//transfer vertex data(CPU) to GPU buffer
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(pyramidTexCoord),
-		pyramidTexCoord,
-		GL_STATIC_DRAW);
-
-	//attach or map attribute pointer to vbo's buffer
-	glVertexAttribPointer(AMC_ATTRIBUTE_TEXCOORD0,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		NULL);
-
-	//enable vertex attribute array
-	glEnableVertexAttribArray(AMC_ATTRIBUTE_TEXCOORD0);
-
-	//unbind vbo
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
-
 	//unbind vao
 	glBindVertexArray(0);
-
-	//------------------------------rectangle-------------------------------
-	//create vao rectangle(vertex array object)
-	glGenVertexArrays(1, &vao_cube);
-
-	//Bind vao
-	glBindVertexArray(vao_cube);
-
-	//generate vertex buffers
-	glGenBuffers(1, &vbo_position_cube);
-
-	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_cube);
-
-	//transfer vertex data(CPU) to GPU buffer
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(cubeVertices),
-		cubeVertices,
-		GL_STATIC_DRAW);
-
-	//attach or map attribute pointer to vbo's buffer
-	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		NULL);
-
-	//enable vertex attribute array
-	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
-
-	//unbind vbo
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-	//--------------------texture------------------
-	//generate vertex buffers
-	glGenBuffers(1, &vbo_texture_cube);
-
-	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_texture_cube);
-
-	//transfer vertex data(CPU) to GPU buffer
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(cubeTexCoord),
-		cubeTexCoord,
-		GL_STATIC_DRAW);
-
-	//attach or map attribute pointer to vbo's buffer
-	glVertexAttribPointer(AMC_ATTRIBUTE_TEXCOORD0,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		NULL);
-
-	//enable vertex attribute array
-	glEnableVertexAttribArray(AMC_ATTRIBUTE_TEXCOORD0);
-
-	//unbind vbo
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//unbind vao
-	glBindVertexArray(0);
-	//----------------------------------------------------------
-	
-
 
 	//usual opengl initialization code:
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glClearDepth(1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	
-	glEnable(GL_TEXTURE_2D);
-	loadTexture(&texture_stone,"Stone.bmp");
-	loadTexture(&texture_kundali,"Kundali.bmp");
+	glLineWidth(5.0f);
 
 	//make identity
 	perspectiveProjectionMatrix = mat4::identity();
 
+	gNumberOfLineSegments = 1;
 
 	resize(gWindowWidth,gWindowHeight);
 	
@@ -974,35 +908,30 @@ void display(void)
 	//usual display code - last line only in double buffering
 	//but in single buffering, whole code is same
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	//Binding Opengl code to shader program object
 	glUseProgram(gShaderProgramObject);
-
+	
 	//matrices
 	mat4 modelViewMatrix;
 	mat4 modelViewProjectionMatrix;
 	mat4 translationMatrix;
-	mat4 scaleMatrix;
-	mat4 rotationMatrix;
 
 
 	//make identity
 	modelViewMatrix = mat4::identity();
 	modelViewProjectionMatrix = mat4::identity();
 	translationMatrix = mat4::identity();
-	scaleMatrix = mat4::identity();
-	rotationMatrix = mat4::identity();
 
 	//do necessary transformation
-
-	translationMatrix = translate(-1.5f, 0.0f, -6.0f);
-	rotationMatrix = rotate(anglePyramid, 0.0f, 1.0f, 0.0f);
+	translationMatrix = translate(0.5f, 0.5f, -2.0f);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
-	modelViewMatrix = translationMatrix * rotationMatrix;
+	modelViewMatrix = modelViewMatrix * translationMatrix;
 	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
+
 
 
 	//send necessary matrices to shader in respective uniforms
@@ -1011,88 +940,35 @@ void display(void)
 		GL_FALSE,//have to transpose?
 		modelViewProjectionMatrix);//actual matrix
 
-	//bind with vao
-	glBindVertexArray(vao_pyramid);
+	glUniform1i(gNumberOfSegmentsUniform, gNumberOfLineSegments);
+	glUniform1i(gNumberOfStripsUniform, 1);
+	if (gNumberOfLineSegments == 1)
+	{
+		glUniform4fv(gLineColorUniform, 1, vmath::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+	}
+	else if (gNumberOfLineSegments < 50)
+	{
+		glUniform4fv(gLineColorUniform, 1, vmath::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	}
+	else if (gNumberOfLineSegments == 50)
+	{
+		glUniform4fv(gLineColorUniform, 1, vmath::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	}
 
-	//Before binding to vao, work with texture
+	//bind with vao
+	glBindVertexArray(vao);
+
 	//similarly bind with textures if any
-	glActiveTexture(GL_TEXTURE0);
-
-	glBindTexture(GL_TEXTURE_2D, texture_stone);
-	glUniform1i(samplerUniform, 0);
-
-	//bind with vao
-	glBindVertexArray(vao_pyramid);
 
 	//now draw the necessary scene
-	glDrawArrays(GL_TRIANGLES,
+	glDrawArrays(GL_PATCHES,
 		0,
-		12);
+		4);
 
 	//unbind vao
 	glBindVertexArray(0);
 
-	//-----------------------------Rectangle----------------------
-	//make identity
-	modelViewMatrix = mat4::identity();
-	modelViewProjectionMatrix = mat4::identity();
-	rotationMatrix = mat4::identity();
-	translationMatrix = mat4::identity();
-
-	//do necessary transformation
-	translationMatrix = translate(1.5f, 0.0f, -6.0f);
-	scaleMatrix = scale(0.75f, 0.75f, 0.75f);
-	rotationMatrix = rotate(angleCube, angleCube, angleCube);
-
-	//do necessary matrix multiplication
-	//this was internally done by gluOrtho() in ffp
-	modelViewMatrix = translationMatrix * scaleMatrix * rotationMatrix;
-	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
-
-
-	//send necessary matrices to shader in respective uniforms
-	glUniformMatrix4fv(mvpUniform,//which uniform?
-		1,//how many matrices
-		GL_FALSE,//have to transpose?
-		modelViewProjectionMatrix);//actual matrix
-
-	//bind with vao
-	glBindVertexArray(vao_cube);
-
-	//Before binding to vao, work with texture
-	//similarly bind with textures if any
-	glActiveTexture(GL_TEXTURE0);
-
-	glBindTexture(GL_TEXTURE_2D, texture_kundali);
-	glUniform1i(samplerUniform, 0);
-
-	//bind with vao
-	glBindVertexArray(vao_cube);
-
-	//now draw the necessary scene
-	glDrawArrays(GL_TRIANGLE_FAN,
-		0,
-		4);
-	glDrawArrays(GL_TRIANGLE_FAN,
-		4,
-		4);
-	glDrawArrays(GL_TRIANGLE_FAN,
-		8,
-		4);
-	glDrawArrays(GL_TRIANGLE_FAN,
-		12,
-		4);
-	glDrawArrays(GL_TRIANGLE_FAN,
-		16,
-		4);
-	glDrawArrays(GL_TRIANGLE_FAN,
-		20,
-		4);
-
-	//unbind vao
-	glBindVertexArray(0);
-	
-	//unbinding program
+	//unbinding
 	glUseProgram(0);
 
 	glXSwapBuffers(gpDisplay, gWindow);
@@ -1100,67 +976,21 @@ void display(void)
 
 void update(void)
 {
-	anglePyramid = anglePyramid + 1.0f;
-	if (anglePyramid >= 360.0f)
-	{
-		anglePyramid = 0.0f;
-	}
-
-	angleCube = angleCube - 1.0f;
-
-	if (angleCube <= -360.0f)
-	{
-		angleCube = 0.0f;
-	}
-
+	
 }
 
 void uninitialize(void)
 {
-    if (texture_kundali)
+	if (vbo)
 	{
-		glDeleteTextures(1, &texture_kundali);
+		glDeleteBuffers(1, &vbo);
+		vbo = 0;
 	}
 
-	if (texture_stone)
+	if (vao)
 	{
-		glDeleteTextures(1, &texture_stone);
-	}
-
-	if (vbo_texture_cube)
-	{
-		glDeleteBuffers(1, &vbo_texture_cube);
-		vbo_texture_cube = 0;
-	}
-
-	if (vbo_texture_pyramid)
-	{
-		glDeleteBuffers(1, &vbo_texture_pyramid);
-		vbo_texture_pyramid = 0;
-	}
-
-	if (vbo_position_cube)
-	{
-		glDeleteBuffers(1, &vbo_position_cube);
-		vbo_position_cube = 0;
-	}
-
-	if (vao_cube)
-	{
-		glDeleteVertexArrays(1, &vao_cube);
-		vao_cube = 0;
-	}
-
-	if (vbo_position_pyramid)
-	{
-		glDeleteBuffers(1, &vbo_position_pyramid);
-		vbo_position_pyramid = 0;
-	}
-
-	if (vao_pyramid)
-	{
-		glDeleteVertexArrays(1, &vao_pyramid);
-		vao_pyramid = 0;
+		glDeleteVertexArrays(1, &vao);
+		vao = 0;
 	}
 
 	if (gShaderProgramObject)

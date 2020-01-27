@@ -51,24 +51,43 @@ GLuint gVertexShaderObject;
 GLuint gFragmentShaderObject;
 GLuint gShaderProgramObject;
 
-GLuint vao_pyramid;
 GLuint vao_cube;// vertex array object
+GLuint vbo_cube;
+GLuint texture_marble;
 
-GLuint vbo_position_pyramid;
-GLuint vbo_position_cube; // vertex buffer object
-
-GLuint vbo_texture_pyramid; // texture buffer object
-GLuint vbo_texture_cube;
-GLuint texture_stone;
-GLuint texture_kundali;
-
-GLfloat anglePyramid = 0.0f;
 GLfloat angleCube = 0.0f;
 
-GLuint mvpUniform; //model view projection uniform
+GLuint modelUniform; //model view uniform
+GLuint viewUniform;
+GLuint projectionUniform;
+
+GLuint laUniform;
+GLuint ldUniform;
+GLuint lsUniform;
+GLuint lightPositionUniform;
+
+GLuint kaUniform;
+GLuint kdUniform;
+GLuint ksUniform;
+
 GLuint samplerUniform;
+GLuint materialShininessUniform;
+GLuint lKeyPressedUniform;
 
 mat4 perspectiveProjectionMatrix;
+
+bool gbLight = false;
+
+float LightAmbient[4] = { 0.25f, 0.25f, 0.25f, 0.0f };
+float LightDiffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float LightSpecular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float LightPosition[4] = { 100.0f, 100.0f, 100.0f, 1.0f };
+
+float MaterialAmbient[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+float MaterialDiffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float MaterialSpecular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float MaterialShininess = 128.0f;
+
 
 //function prototypes
 void CreateWindow(void);
@@ -80,6 +99,7 @@ void resize(int,int);
 void display(void);
 void update(void);
 bool loadTexture(GLuint *, const char *);
+
 
 int main(void)
 {
@@ -137,6 +157,18 @@ int main(void)
 								bFullscreen = false;
 							}
 							break;
+                        
+                        case XK_L:
+                        case XK_l:
+                            if (gbLight == false)
+                            {
+                                gbLight = true;
+                            }
+                            else
+                            {
+                                gbLight = false;
+                            }
+                            break;
 
 						default:
 							break;
@@ -185,7 +217,7 @@ int main(void)
 			}
 		}
 
-		update();
+        update();
 		display();
 	}
 
@@ -473,6 +505,7 @@ void initialize(void)
 			GLX_CONTEXT_MINOR_VERSION_ARB, 0,
 			None
 		};
+
 		gGLXContext = glXCreateContextAttribsARB(gpDisplay,
 			gGLXFBConfig,
 			0,
@@ -514,13 +547,28 @@ void initialize(void)
 		"#version 450 core" \
 		"\n" \
 		"in vec4 vPosition;" \
+		"in vec4 vColor;" \
 		"in vec2 vTexCoord;" \
-		"uniform mat4 u_mvp_matrix;" \
+		"in vec3 vNormal;" \
+		"uniform int u_lKeyPressed;" \
+		"uniform mat4 u_view_matrix;" \
+		"uniform mat4 u_model_matrix;" \
+		"uniform mat4 u_projection_matrix;" \
+		"uniform vec4 u_light_position;" \
+		"out vec3 tNormal;" \
+		"out vec4 out_color;" \
 		"out vec2 out_texcoord;" \
+		"out vec3 light_direction;" \
+		"out vec3 viewer_vector;" \
 		"void main(void)" \
 		"{" \
-		"gl_Position = u_mvp_matrix * vPosition;" \
-		"out_texcoord = vTexCoord;" \
+		"	vec4 eyeCoords = u_view_matrix * u_model_matrix * vPosition;" \
+		"	tNormal = mat3(u_view_matrix * u_model_matrix) * vNormal;" \
+		"	light_direction = vec3(u_light_position - eyeCoords);" \
+		"	viewer_vector = vec3(-eyeCoords.xyz);" \
+		"	gl_Position = u_projection_matrix * u_view_matrix * u_model_matrix * vPosition;" \
+		"	out_texcoord = vTexCoord;" \
+		"	out_color = vColor;" \
 		"}";
 
 	//specify above source code to vertex shader object
@@ -586,13 +634,43 @@ void initialize(void)
 	const GLchar *fragmentShaderSourceCode =
 		"#version 450 core" \
 		"\n" \
+		"in vec3 tNormal;" \
 		"in vec2 out_texcoord;" \
+		"in vec4 out_color;" \
+		"in vec3 light_direction;" \
+		"in vec3 viewer_vector;" \
+		"uniform int u_lKeyPressed;" \
 		"uniform sampler2D u_sampler;" \
+		"uniform vec3 u_la;" \
+		"uniform vec3 u_ld;" \
+		"uniform vec3 u_ls;" \
+		"uniform vec3 u_ka;" \
+		"uniform vec3 u_kd;" \
+		"uniform vec3 u_ks;" \
+		"uniform float u_material_shininess;" \
+		"vec3 phong_ads_light;" \
 		"out vec4 fragColor;" \
 		"void main(void)" \
 		"{" \
-		"fragColor = texture(u_sampler, out_texcoord);" \
+		"if(u_lKeyPressed == 1)" \
+		"{" \
+		"vec3 normalized_tNormal = normalize(tNormal);" \
+		"vec3 normalized_light_direction = normalize(light_direction);" \
+		"float tNorm_Dot_LightDirection = max(dot(normalized_light_direction, normalized_tNormal), 0.0);" \
+		"vec3 reflection_vector = reflect(-normalized_light_direction, normalized_tNormal);" \
+		"vec3 normalized_viewer_vector = normalize(viewer_vector);" \
+		"vec3 ambient = u_la * u_ka;" \
+		"vec3 diffuse = u_ld * u_kd * tNorm_Dot_LightDirection;" \
+		"vec3 specular = u_ls * u_ks * pow(max(dot(reflection_vector,normalized_viewer_vector), 0.0), u_material_shininess);" \
+		"phong_ads_light = ambient + diffuse + specular;" \
+		"}" \
+		"else" \
+		"{" \
+		"phong_ads_light = vec3(1.0, 1.0, 1.0);" \
+		"}" \
+		"fragColor = texture(u_sampler, out_texcoord) * out_color * vec4(phong_ads_light ,1.0);" \
 		"}";
+
 
 	//specify the above source code to fragment shader object
 	glShaderSource(gFragmentShaderObject,
@@ -662,10 +740,18 @@ void initialize(void)
 	glBindAttribLocation(gShaderProgramObject,
 		AMC_ATTRIBUTE_POSITION,
 		"vPosition");
-		
+
+	glBindAttribLocation(gShaderProgramObject,
+		AMC_ATTRIBUTE_COLOR,
+		"vColor");
+
 	glBindAttribLocation(gShaderProgramObject,
 		AMC_ATTRIBUTE_TEXCOORD0,
 		"vTexCoord");
+
+	glBindAttribLocation(gShaderProgramObject,
+		AMC_ATTRIBUTE_NORMAL,
+		"vNormal");
 
 	//Link the shader program
 	glLinkProgram(gShaderProgramObject);//link to whom?
@@ -716,160 +802,83 @@ void initialize(void)
 	
 	
 	//Post-Linking reteriving uniform location
-	mvpUniform = glGetUniformLocation(gShaderProgramObject,
-		"u_mvp_matrix");
-		
+	viewUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_view_matrix");
+
+	modelUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_model_matrix");
+
+	projectionUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_projection_matrix");
+
 	samplerUniform = glGetUniformLocation(gShaderProgramObject,
 		"u_sampler");
+
+	lKeyPressedUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_lKeyPressed");
+
+	laUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_la");
+
+	ldUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_ld");
+
+	lsUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_ls");
+
+	lightPositionUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_light_position");
+
+	kaUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_ka");
+
+	kdUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_kd");
+
+	ksUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_ks");
+
+	materialShininessUniform = glGetUniformLocation(gShaderProgramObject,
+		"u_material_shininess");
 
 	//above is the preparation of data transfer from CPU to GPU 
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
 	//array initialization (glBegin() and glEnd())
-	const GLfloat pyramidVertices[] = {
-		-1.0f, -1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, -1.0f };
-
-	const GLfloat cubeVertices[] = {
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f };
-
-	const GLfloat pyramidTexCoord[] = {
-		0.5f, 1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		0.5f,1.0f,
-		1.0f,0.0f,
-		0.0f,0.0f,
-		0.5f,1.0f,
-		1.0f,0.0f,
-		0.0f,0.0f,
-		0.5f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f};
-
-	const GLfloat cubeTexCoord[] = {
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f,
-		1.0f,1.0f,
-		0.0f,1.0f };
-
-	//create vao (vertex array object)
-	glGenVertexArrays(1, &vao_pyramid);
-
-	//Bind vao
-	glBindVertexArray(vao_pyramid);
-	//---------------------position---------------------------
-	//generate vertex buffers
-	glGenBuffers(1, &vbo_position_pyramid);
-
-	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_pyramid);
-
-	//transfer vertex data(CPU) to GPU buffer
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(pyramidVertices),
-		pyramidVertices,
-		GL_STATIC_DRAW);
-
-	//attach or map attribute pointer to vbo's buffer
-	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		NULL);
-
-	//enable vertex attribute array
-	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
-
-	//unbind vbo
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	//--------------------texture------------------
-	//generate vertex buffers
-	glGenBuffers(1, &vbo_texture_pyramid);
-
-	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_texture_pyramid);
-
-	//transfer vertex data(CPU) to GPU buffer
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(pyramidTexCoord),
-		pyramidTexCoord,
-		GL_STATIC_DRAW);
-
-	//attach or map attribute pointer to vbo's buffer
-	glVertexAttribPointer(AMC_ATTRIBUTE_TEXCOORD0,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		NULL);
-
-	//enable vertex attribute array
-	glEnableVertexAttribArray(AMC_ATTRIBUTE_TEXCOORD0);
-
-	//unbind vbo
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
+	const GLfloat cubeVCNT[] = {
+		1.0f, 1.0f, -1.0f,1.0f, 0.0f, 0.0f,0.0f, 1.0f, 0.0f,0.0f,0.0f,
+		-1.0f, 1.0f, -1.0f,1.0f, 0.0f, 0.0f,0.0f, 1.0f, 0.0f,1.0f,0.0f,
+		-1.0f, 1.0f, 1.0f,1.0f, 0.0f, 0.0f,0.0f, 1.0f, 0.0f,1.0f,1.0f,
+		1.0f, 1.0f, 1.0f,1.0f, 0.0f, 0.0f,0.0f, 1.0f, 0.0f,0.0f,1.0f,
+		
+		1.0f, -1.0f, -1.0f,0.0f,1.0f,0.0f,0.0f, -1.0f, 0.0f,0.0f,0.0f,
+		-1.0f, -1.0f, -1.0f,0.0f,1.0f,0.0f,0.0f, -1.0f, 0.0f,1.0f,0.0f,
+		-1.0f, -1.0f, 1.0f,0.0f,1.0f,0.0f,0.0f, -1.0f, 0.0f,1.0f,1.0f,
+		1.0f, -1.0f, 1.0f,0.0f,1.0f,0.0f,0.0f, -1.0f, 0.0f,0.0f,1.0f,
+		
+		1.0f, 1.0f, 1.0f,0.0f,0.0f,1.0f,0.0f, 0.0f, 1.0f,0.0f,0.0f,
+		-1.0f, 1.0f, 1.0f,0.0f,0.0f,1.0f,0.0f, 0.0f, 1.0f,1.0f,0.0f,
+		-1.0f, -1.0f, 1.0f,0.0f,0.0f,1.0f,0.0f, 0.0f, 1.0f,1.0f,1.0f,
+		1.0f, -1.0f, 1.0f,0.0f,0.0f,1.0f,0.0f, 0.0f, 1.0f,0.0f,1.0f,
+		
+		1.0f, 1.0f, -1.0f,0.0f,1.0f,1.0f,0.0f, 0.0f, -1.0f,0.0f,0.0f,
+		-1.0f, 1.0f, -1.0f,0.0f,1.0f,1.0f,0.0f, 0.0f, -1.0f,1.0f,0.0f,
+		-1.0f, -1.0f, -1.0f,0.0f,1.0f,1.0f,0.0f, 0.0f, -1.0f,1.0f,1.0f,
+		1.0f, -1.0f, -1.0f,0.0f,1.0f,1.0f,0.0f, 0.0f, -1.0f,0.0f,1.0f,
+		
+		1.0f, 1.0f, -1.0f,1.0f,0.0f,1.0f,1.0f, 0.0f, 0.0f,0.0f,0.0f,
+		1.0f, 1.0f, 1.0f,1.0f,0.0f,1.0f,1.0f, 0.0f, 0.0f,1.0f,0.0f,
+		1.0f, -1.0f, 1.0f,1.0f,0.0f,1.0f,1.0f, 0.0f, 0.0f,1.0f,1.0f,
+		1.0f, -1.0f, -1.0f,1.0f,0.0f,1.0f,1.0f, 0.0f, 0.0f,0.0f,1.0f,
+		
+		-1.0f, 1.0f, -1.0f,1.0f,1.0f,0.0f,-1.0f, 0.0f, 0.0f,0.0f,0.0f,
+		-1.0f, 1.0f, 1.0f,1.0f,1.0f,0.0f,-1.0f, 0.0f, 0.0f,1.0f,0.0f,
+		-1.0f, -1.0f, 1.0f,1.0f,1.0f,0.0f,-1.0f, 0.0f, 0.0f,1.0f,1.0f,
+		-1.0f, -1.0f, -1.0f,1.0f,1.0f,0.0f,-1.0f, 0.0f, 0.0f,0.0f,1.0f };
 
-	//unbind vao
-	glBindVertexArray(0);
-
-	//------------------------------rectangle-------------------------------
+    
+	//------------------------------Cube-------------------------------
 	//create vao rectangle(vertex array object)
 	glGenVertexArrays(1, &vao_cube);
 
@@ -877,15 +886,15 @@ void initialize(void)
 	glBindVertexArray(vao_cube);
 
 	//generate vertex buffers
-	glGenBuffers(1, &vbo_position_cube);
+	glGenBuffers(1, &vbo_cube);
 
 	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_cube);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_cube);
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(cubeVertices),
-		cubeVertices,
+		24 * 11 * sizeof(float),
+		cubeVCNT,
 		GL_STATIC_DRAW);
 
 	//attach or map attribute pointer to vbo's buffer
@@ -893,36 +902,43 @@ void initialize(void)
 		3,
 		GL_FLOAT,
 		GL_FALSE,
-		0,
-		NULL);
+		11 * sizeof(float),
+		(void *) 0);
 
 	//enable vertex attribute array
 	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
 
-	//unbind vbo
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_COLOR,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		11 * sizeof(float),
+		(void *)(3 * sizeof(float)));
+
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_COLOR);
 
 
-	//--------------------texture------------------
-	//generate vertex buffers
-	glGenBuffers(1, &vbo_texture_cube);
+	//attach or map attribute pointer to vbo's buffer
+	glVertexAttribPointer(AMC_ATTRIBUTE_NORMAL,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		11 * sizeof(float),
+		(void *)(6 * sizeof(float)));
 
-	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_texture_cube);
-
-	//transfer vertex data(CPU) to GPU buffer
-	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(cubeTexCoord),
-		cubeTexCoord,
-		GL_STATIC_DRAW);
+	//enable vertex attribute array
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_NORMAL);
 
 	//attach or map attribute pointer to vbo's buffer
 	glVertexAttribPointer(AMC_ATTRIBUTE_TEXCOORD0,
 		2,
 		GL_FLOAT,
 		GL_FALSE,
-		0,
-		NULL);
+		11 * sizeof(float),
+		(void *)(9 * sizeof(float)));
 
 	//enable vertex attribute array
 	glEnableVertexAttribArray(AMC_ATTRIBUTE_TEXCOORD0);
@@ -932,9 +948,6 @@ void initialize(void)
 
 	//unbind vao
 	glBindVertexArray(0);
-	//----------------------------------------------------------
-	
-
 
 	//usual opengl initialization code:
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -943,9 +956,9 @@ void initialize(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	
+	//glDisable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);
-	loadTexture(&texture_stone,"Stone.bmp");
-	loadTexture(&texture_kundali,"Kundali.bmp");
+	loadTexture(&texture_marble,"marble.bmp");
 
 	//make identity
 	perspectiveProjectionMatrix = mat4::identity();
@@ -974,100 +987,78 @@ void display(void)
 	//usual display code - last line only in double buffering
 	//but in single buffering, whole code is same
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	//Binding Opengl code to shader program object
 	glUseProgram(gShaderProgramObject);
-
+	
 	//matrices
-	mat4 modelViewMatrix;
-	mat4 modelViewProjectionMatrix;
+	mat4 viewMatrix;
+	mat4 modelMatrix;
+	mat4 ProjectionMatrix;
 	mat4 translationMatrix;
 	mat4 scaleMatrix;
 	mat4 rotationMatrix;
 
-
 	//make identity
-	modelViewMatrix = mat4::identity();
-	modelViewProjectionMatrix = mat4::identity();
-	translationMatrix = mat4::identity();
-	scaleMatrix = mat4::identity();
-	rotationMatrix = mat4::identity();
-
-	//do necessary transformation
-
-	translationMatrix = translate(-1.5f, 0.0f, -6.0f);
-	rotationMatrix = rotate(anglePyramid, 0.0f, 1.0f, 0.0f);
-
-	//do necessary matrix multiplication
-	//this was internally done by gluOrtho() in ffp
-	modelViewMatrix = translationMatrix * rotationMatrix;
-	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
-
-
-	//send necessary matrices to shader in respective uniforms
-	glUniformMatrix4fv(mvpUniform,//which uniform?
-		1,//how many matrices
-		GL_FALSE,//have to transpose?
-		modelViewProjectionMatrix);//actual matrix
-
-	//bind with vao
-	glBindVertexArray(vao_pyramid);
-
-	//Before binding to vao, work with texture
-	//similarly bind with textures if any
-	glActiveTexture(GL_TEXTURE0);
-
-	glBindTexture(GL_TEXTURE_2D, texture_stone);
-	glUniform1i(samplerUniform, 0);
-
-	//bind with vao
-	glBindVertexArray(vao_pyramid);
-
-	//now draw the necessary scene
-	glDrawArrays(GL_TRIANGLES,
-		0,
-		12);
-
-	//unbind vao
-	glBindVertexArray(0);
-
-	//-----------------------------Rectangle----------------------
-	//make identity
-	modelViewMatrix = mat4::identity();
-	modelViewProjectionMatrix = mat4::identity();
+	viewMatrix = mat4::identity();
+	modelMatrix = mat4::identity();
+	ProjectionMatrix = mat4::identity();
 	rotationMatrix = mat4::identity();
 	translationMatrix = mat4::identity();
 
 	//do necessary transformation
-	translationMatrix = translate(1.5f, 0.0f, -6.0f);
+	translationMatrix = translate(0.0f, 0.0f, -6.0f);
 	scaleMatrix = scale(0.75f, 0.75f, 0.75f);
 	rotationMatrix = rotate(angleCube, angleCube, angleCube);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
-	modelViewMatrix = translationMatrix * scaleMatrix * rotationMatrix;
-	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
-
+	modelMatrix = translationMatrix * scaleMatrix * rotationMatrix;
+	ProjectionMatrix = perspectiveProjectionMatrix;
 
 	//send necessary matrices to shader in respective uniforms
-	glUniformMatrix4fv(mvpUniform,//which uniform?
-		1,//how many matrices
-		GL_FALSE,//have to transpose?
-		modelViewProjectionMatrix);//actual matrix
+	glUniformMatrix4fv(viewUniform, //which uniform?
+		1,			//how many matrices
+		GL_FALSE,	//have to transpose?
+		viewMatrix); //actual matrix
 
-	//bind with vao
-	glBindVertexArray(vao_cube);
+	glUniformMatrix4fv(modelUniform, //which uniform?
+		1,			 //how many matrices
+		GL_FALSE,	 //have to transpose?
+		modelMatrix); //actual matrix
 
-	//Before binding to vao, work with texture
-	//similarly bind with textures if any
+	glUniformMatrix4fv(projectionUniform, //which uniform?
+		1,				  //how many matrices
+		GL_FALSE,		  //have to transpose?
+		ProjectionMatrix); //actual matrix
+
+	if (gbLight == true)
+	{
+		glUniform1i(lKeyPressedUniform, 1);
+		glUniform3fv(laUniform, 1, LightAmbient);
+		glUniform3fv(ldUniform, 1, LightDiffuse);
+		glUniform3fv(lsUniform, 1, LightSpecular);
+		glUniform3fv(kaUniform, 1, MaterialAmbient);
+		glUniform3fv(kdUniform, 1, MaterialDiffuse);
+		glUniform3fv(ksUniform, 1, MaterialSpecular);
+		glUniform1f(materialShininessUniform, MaterialShininess);
+		glUniform4fv(lightPositionUniform, 1, LightPosition);
+	}
+	else
+	{
+		glUniform1i(lKeyPressedUniform, 0);
+	}
+
 	glActiveTexture(GL_TEXTURE0);
 
-	glBindTexture(GL_TEXTURE_2D, texture_kundali);
+	glBindTexture(GL_TEXTURE_2D, texture_marble);
 	glUniform1i(samplerUniform, 0);
 
 	//bind with vao
 	glBindVertexArray(vao_cube);
+
+	//similarly bind with textures if any
 
 	//now draw the necessary scene
 	glDrawArrays(GL_TRIANGLE_FAN,
@@ -1091,7 +1082,6 @@ void display(void)
 
 	//unbind vao
 	glBindVertexArray(0);
-	
 	//unbinding program
 	glUseProgram(0);
 
@@ -1100,67 +1090,31 @@ void display(void)
 
 void update(void)
 {
-	anglePyramid = anglePyramid + 1.0f;
-	if (anglePyramid >= 360.0f)
-	{
-		anglePyramid = 0.0f;
-	}
-
 	angleCube = angleCube - 1.0f;
 
 	if (angleCube <= -360.0f)
 	{
 		angleCube = 0.0f;
 	}
-
 }
 
 void uninitialize(void)
 {
-    if (texture_kundali)
+	if (texture_marble)
 	{
-		glDeleteTextures(1, &texture_kundali);
+		glDeleteTextures(1, &texture_marble);
 	}
 
-	if (texture_stone)
+    if (vbo_cube)
 	{
-		glDeleteTextures(1, &texture_stone);
-	}
-
-	if (vbo_texture_cube)
-	{
-		glDeleteBuffers(1, &vbo_texture_cube);
-		vbo_texture_cube = 0;
-	}
-
-	if (vbo_texture_pyramid)
-	{
-		glDeleteBuffers(1, &vbo_texture_pyramid);
-		vbo_texture_pyramid = 0;
-	}
-
-	if (vbo_position_cube)
-	{
-		glDeleteBuffers(1, &vbo_position_cube);
-		vbo_position_cube = 0;
+		glDeleteBuffers(1, &vbo_cube);
+		vbo_cube = 0;
 	}
 
 	if (vao_cube)
 	{
 		glDeleteVertexArrays(1, &vao_cube);
 		vao_cube = 0;
-	}
-
-	if (vbo_position_pyramid)
-	{
-		glDeleteBuffers(1, &vbo_position_pyramid);
-		vbo_position_pyramid = 0;
-	}
-
-	if (vao_pyramid)
-	{
-		glDeleteVertexArrays(1, &vao_pyramid);
-		vao_pyramid = 0;
 	}
 
 	if (gShaderProgramObject)
@@ -1253,3 +1207,4 @@ void uninitialize(void)
 	}
 
 }
+
