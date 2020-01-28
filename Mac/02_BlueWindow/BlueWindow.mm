@@ -13,7 +13,7 @@ CVReturn MyDisplayLinkCallback(CVDisplayLinkRef, const CVTimeStamp *, const CVTi
 FILE *gpFile = NULL;
 
 //interface declarations
-@interface AppDelegate : NSObject <NSApplication, NSWindowDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 @end
 
 @interface GLView : NSOpenGLView
@@ -73,9 +73,9 @@ int main(int argc, const char* argv[])
     [window setTitle:@"macOS OpenGl Window"];
     [window center];
 
-    view =[[MyView alloc] initWithFrame:win_rect];
+    glView =[[GLView alloc] initWithFrame:win_rect];
     [window setContentView: glView];
-    [window setDelegte: self];
+    [window setDelegate: self];
     [window makeKeyAndOrderFront:self];
 }
 
@@ -100,7 +100,7 @@ int main(int argc, const char* argv[])
 -(void)dealloc
 {
     //code
-    [view release];
+    [glView release];
     [window release];
     [super dealloc];
 }
@@ -112,7 +112,7 @@ int main(int argc, const char* argv[])
     CVDisplayLinkRef displayLink;
 }
 
--(id)initWithFrame:(NSrect)frame
+-(id)initWithFrame:(NSRect)frame
 {
     self = [super initWithFrame:frame];
 
@@ -124,7 +124,7 @@ int main(int argc, const char* argv[])
         {
             NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion4_1Core,
             NSOpenGLPFAScreenMask, CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay),
-            NSOpenGLPFANORecovery,
+            NSOpenGLPFANoRecovery,
             NSOpenGLPFAAccelerated,
             NSOpenGLPFAColorSize, 24,
             NSOpenGLPFADepthSize, 24,
@@ -164,6 +164,7 @@ int main(int argc, const char* argv[])
 -(void)prepareOpenGL
 {
     //code
+    [super prepareOpenGL];
     //OpenGL info
 
     fprintf(gpFile, "OpenGL Version : %s\n", glGetString(GL_VERSION));
@@ -172,12 +173,12 @@ int main(int argc, const char* argv[])
     [[self openGLContext]makeCurrentContext];
 
     GLint swapInt = 1;
-    [[self openGLContext]setValues:&swapInt forParameters:NSOpenGLCPSwapInterval];
+    [[self openGLContext]setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
 
     //set bk color
     glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
 
-    CVDisplayLinkCreateWithActiveCGDisplay(&displayLink);
+    CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
     CVDisplayLinkSetOutputCallback(displayLink, &MyDisplayLinkCallback, self);
     CGLContextObj cglContext = (CGLContextObj)[[self openGLContext]CGLContextObj];
     CGLPixelFormatObj cglPixelFormat = (CGLPixelFormatObj)[[self pixelFormat]CGLPixelFormatObj];
@@ -189,6 +190,8 @@ int main(int argc, const char* argv[])
 -(void)reshape
 {
     //code
+    [super reshape];
+    
     CGLLockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
     NSRect rect = [self bounds];
 
@@ -198,7 +201,7 @@ int main(int argc, const char* argv[])
     if(height == 0)
         height = 1;
 
-    glViewPort(0, 0, (GLsizei)width, (GLsizei)height);
+    glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 
     CGLUnlockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
 }
@@ -221,10 +224,10 @@ int main(int argc, const char* argv[])
     CGLUnlockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
 }
 
--(BOOL)acceptFirstResponder
+-(BOOL)acceptsFirstResponder
 {
     //code
-    [[self window]makeFirstresponder:self];
+    [[self window]makeFirstResponder:self];
     return(YES);
 }
 

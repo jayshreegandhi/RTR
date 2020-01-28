@@ -2,7 +2,7 @@
 #import <Cocoa/Cocoa.h> // windowing framework
 
 //interface declarations
-@interface AppDelegate : NSObject <NSApplication, NSWindowDelegate>
+@interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
 @end
 
 @interface MyView : NSView
@@ -49,7 +49,7 @@ int main(int argc, const char* argv[])
 
     view =[[MyView alloc] initWithFrame:win_rect];
     [window setContentView: view];
-    [window setDelegte: self];
+    [window setDelegate: self];
     [window makeKeyAndOrderFront:self];
 }
 
@@ -78,7 +78,7 @@ int main(int argc, const char* argv[])
     NSString *centralText;
 }
 
--(id)initWithFrame:(NSrect)frame
+-(id)initWithFrame:(NSRect)frame
 {
     self = [super initWithFrame:frame];
 
@@ -99,20 +99,20 @@ int main(int argc, const char* argv[])
     NSRectFill(dirtyRect);
 
     //dictionary with kvc
-    NSDictionary *dictionaryForTextAttributes=[NSDictionary dictionaryWithObjectsAndKeys:[NSFOnt fontWithName:@"Helvetica" size:32], NSFontAttributeName,[NSColor greenColor], NSForegroundColorAttributeName, nil];
+    NSDictionary *dictionaryForTextAttributes=[NSDictionary dictionaryWithObjectsAndKeys:[NSFont fontWithName:@"Helvetica" size:32], NSFontAttributeName,[NSColor greenColor], NSForegroundColorAttributeName, nil];
 
     NSSize textSize = [centralText sizeWithAttributes:dictionaryForTextAttributes];
     NSPoint point;
     point.x=(dirtyRect.size.width/2)-(textSize.width/2);
     point.y=(dirtyRect.size.height/2)-(textSize.height/2)+12;
 
-    [centralText drawPoint:point withAttributes:dictionaryForTextAttributes];
+    [centralText drawAtPoint:point withAttributes:dictionaryForTextAttributes];
 }
 
--(BOOL)acceptFirstResponder
+-(BOOL)acceptsFirstResponder
 {
     //code
-    [[self window]makeFirstresponder:self];
+    [[self window]makeFirstResponder:self];
     return(YES);
 }
 

@@ -129,7 +129,7 @@ int main(int argc, const char* argv[])
     GLuint vbo;
     GLuint mvpUniform;
 
-    vmath::mat4 orthographicProjectionMatrix;
+    vmath::mat4 perspectiveProjectionMatrix;
 }
 
 -(id)initWithFrame:(NSRect)frame
@@ -406,9 +406,9 @@ int main(int argc, const char* argv[])
 
 	//array initialization (glBegin() and glEnd())
 	const GLfloat traingleVertices[] = {
-		0.0f,50.0f,0.0f,
-		-50.0f,-50.0f,0.0f,
-		50.0f,-50.0f,0.0f };
+		0.0f,1.0f,0.0f,
+		-1.0f,-1.0f,0.0f,
+		1.0f,-1.0f,0.0f };
 
 	//create vao (vertex array object)
 	glGenVertexArrays(1, &vao);
@@ -453,8 +453,7 @@ int main(int argc, const char* argv[])
     //set bk color
     glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
 
-    orthographicProjectionMatrix = vmath::mat4::identity();
-
+    perspectiveProjectionMatrix = vmath::mat4::identity();
 
     CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
     CVDisplayLinkSetOutputCallback(displayLink, &MyDisplayLinkCallback, self);
@@ -480,24 +479,7 @@ int main(int argc, const char* argv[])
 
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 
-    if (width <= height)
-	{
-		orthographicProjectionMatrix = vmath::ortho(-100.0f,
-			100.0f,
-			(-100.0f * (GLfloat)height / (GLfloat)width),
-			(100.0f * (GLfloat)height / (GLfloat)width),
-			-100.0f,
-			100.0f);
-	}
-	else
-	{
-		orthographicProjectionMatrix = vmath::ortho((-100.0f * (GLfloat)width / (GLfloat)height),
-			(100.0f * (GLfloat)width / (GLfloat)height),
-			-100.0f,
-			100.0f,
-			-100.0f,
-			100.0f);
-	}
+    perspectiveProjectionMatrix = vmath::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 
     CGLUnlockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
 }
@@ -522,18 +504,20 @@ int main(int argc, const char* argv[])
 	//matrices
 	vmath::mat4 modelViewMatrix;
 	vmath::mat4 modelViewProjectionMatrix;
+	vmath::mat4 translationMatrix;
 
 	//make identity
 	modelViewMatrix = vmath::mat4::identity();
 	modelViewProjectionMatrix = vmath::mat4::identity();
+	translationMatrix = vmath::mat4::identity();
 
 	//do necessary transformation
-	//here
+	translationMatrix = vmath::translate(0.0f, 0.0f, -6.0f);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
-	modelViewProjectionMatrix = orthographicProjectionMatrix * modelViewMatrix;
-
+	modelViewMatrix = modelViewMatrix * translationMatrix;
+	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
 
 	//send necessary matrices to shader in respective uniforms
 	glUniformMatrix4fv(mvpUniform,//which uniform?

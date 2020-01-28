@@ -1,3 +1,3 @@
 mkdir -p Window.app/Contents/MacOS
 
-clang -o Window.app/Contents/MacOS/Window Window.m -framework Cocoa
+Clang -o Window.app/Contents/MacOS/Window Window.m -framework Cocoa
