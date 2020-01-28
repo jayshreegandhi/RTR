@@ -1,11 +1,11 @@
-#include<windows.h>
-#include<GL/glew.h> //Wrangler For PP , add additional headers and lib path 
-#include<gl/GL.h>
-#include<stdio.h>
-#include"vmath.h"
+#include <windows.h>
+#include <GL/glew.h> //Wrangler For PP , add additional headers and lib path
+#include <gl/GL.h>
+#include <stdio.h>
+#include "vmath.h"
 
-#pragma comment(lib,"glew32.lib")
-#pragma comment(lib,"opengl32.lib")
+#pragma comment(lib, "glew32.lib")
+#pragma comment(lib, "opengl32.lib")
 
 //global namespace
 
@@ -26,7 +26,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 bool gbFullScreen = false;
 DWORD dwStyle;
-WINDOWPLACEMENT wpPrev = { sizeof(WINDOWPLACEMENT) };
+WINDOWPLACEMENT wpPrev = {sizeof(WINDOWPLACEMENT)};
 HWND ghWnd = NULL;
 HDC ghdc = NULL;
 HGLRC ghrc = NULL;
@@ -41,8 +41,8 @@ void update(void);
 void uninitialize(void);
 
 GLuint gShaderProgramObject;
-GLuint vao; // vertex array object
-GLuint vbo; // vertex buffer object
+GLuint vao;		   // vertex array object
+GLuint vbo;		   // vertex buffer object
 GLuint mvpUniform; //model view projection uniform
 
 GLuint gNumberOfSegmentsUniform;
@@ -88,17 +88,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	RegisterClassEx(&wndclass);
 
 	hwnd = CreateWindowEx(WS_EX_APPWINDOW,
-		szAppName,
-		TEXT("My Double buffer Window - Jayshree"),
-		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
-		100,
-		100,
-		WIN_WIDTH,
-		WIN_HEIGHT,
-		NULL,
-		NULL,
-		hInstance,
-		NULL);
+						  szAppName,
+						  TEXT("My Double buffer Window - Jayshree"),
+						  WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+						  100,
+						  100,
+						  WIN_WIDTH,
+						  WIN_HEIGHT,
+						  NULL,
+						  NULL,
+						  hInstance,
+						  NULL);
 
 	ghWnd = hwnd;
 
@@ -160,7 +160,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		}
 	}
 
-	return((int)msg.wParam);
+	return ((int)msg.wParam);
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
@@ -181,7 +181,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_ERASEBKGND:
-		return(0);
+		return (0);
 		break;
 
 	case WM_CLOSE:
@@ -219,7 +219,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+	return (DefWindowProc(hwnd, iMsg, wParam, lParam));
 }
 
 void ToggleFullScreen(void)
@@ -232,19 +232,19 @@ void ToggleFullScreen(void)
 
 		if (dwStyle & WS_OVERLAPPEDWINDOW)
 		{
-			mi = { sizeof(MONITORINFO) };
+			mi = {sizeof(MONITORINFO)};
 
 			if (GetWindowPlacement(ghWnd, &wpPrev) && GetMonitorInfo(MonitorFromWindow(ghWnd, MONITORINFOF_PRIMARY), &mi))
 			{
 				SetWindowLong(ghWnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
 
 				SetWindowPos(ghWnd,
-					HWND_TOP,
-					mi.rcMonitor.left,
-					mi.rcMonitor.top,
-					mi.rcMonitor.right - mi.rcMonitor.left,
-					mi.rcMonitor.bottom - mi.rcMonitor.top,
-					SWP_NOZORDER | SWP_FRAMECHANGED);
+							 HWND_TOP,
+							 mi.rcMonitor.left,
+							 mi.rcMonitor.top,
+							 mi.rcMonitor.right - mi.rcMonitor.left,
+							 mi.rcMonitor.bottom - mi.rcMonitor.top,
+							 SWP_NOZORDER | SWP_FRAMECHANGED);
 			}
 		}
 
@@ -278,23 +278,23 @@ int initialize(void)
 	iPixelFormatIndex = ChoosePixelFormat(ghdc, &pfd);
 	if (iPixelFormatIndex == 0)
 	{
-		return(-1);
+		return (-1);
 	}
 
 	if (SetPixelFormat(ghdc, iPixelFormatIndex, &pfd) == FALSE)
 	{
-		return(-2);
+		return (-2);
 	}
 
 	ghrc = wglCreateContext(ghdc);
 	if (ghrc == NULL)
 	{
-		return(-3);
+		return (-3);
 	}
 
 	if (wglMakeCurrent(ghdc, ghrc) == FALSE)
 	{
-		return(-4);
+		return (-4);
 	}
 
 	//On the extensions requred for PP
@@ -311,31 +311,29 @@ int initialize(void)
 	GLuint tessellationEvaluationShaderObject;
 	GLuint fragmentShaderObject;
 
-
-	//***************** 1. VERTEX SHADER ************************************ 
+	//***************** 1. VERTEX SHADER ************************************
 	//define vertex shader object
 	//create vertex shader object
 	vertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
 
 	//Write vertex shader code
 	const GLchar *vertexShaderSourceCode =
-		"#version 450 core" \
-		"\n" \
-		"in vec2 vPosition;" \
-		"void main(void)" \
-		"{" \
-		"gl_Position = vec4(vPosition, 0.0, 1.0);" \
+		"#version 450 core"
+		"\n"
+		"in vec2 vPosition;"
+		"void main(void)"
+		"{"
+		"	gl_Position = vec4(vPosition, 0.0, 1.0);"
 		"}";
 
 	//specify above source code to vertex shader object
-	glShaderSource(vertexShaderObject,//to whom?
-		1,//how many strings
-		(const GLchar **)&vertexShaderSourceCode,//address of string
-		NULL);// NULL specifes that there is only one string with fixed length
+	glShaderSource(vertexShaderObject,						 //to whom?
+				   1,										 //how many strings
+				   (const GLchar **)&vertexShaderSourceCode, //address of string
+				   NULL);									 // NULL specifes that there is only one string with fixed length
 
 	//Compile the vertex shader
 	glCompileShader(vertexShaderObject);
-
 
 	//Error checking for compilation:
 	GLint iShaderCompileStatus = 0;
@@ -343,17 +341,17 @@ int initialize(void)
 	GLchar *szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(vertexShaderObject, // whose?
-		GL_COMPILE_STATUS,//what to get?
-		&iShaderCompileStatus);//in what?
+	glGetShaderiv(vertexShaderObject,	 // whose?
+				  GL_COMPILE_STATUS,	  //what to get?
+				  &iShaderCompileStatus); //in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iShaderCompileStatus == GL_FALSE)
 	{
 		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
 		glGetShaderiv(vertexShaderObject,
-			GL_INFO_LOG_LENGTH,
-			&iInfoLogLength);
+					  GL_INFO_LOG_LENGTH,
+					  &iInfoLogLength);
 
 		//Step 4 : if info log length > 0 , call glGetShaderInfoLog()
 		if (iInfoLogLength > 0)
@@ -364,10 +362,10 @@ int initialize(void)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(vertexShaderObject,//whose?
-					iInfoLogLength,//length?
-					&written,//might have not used all, give that much only which have been used in what?
-					szInfoLog);//store in what?
+				glGetShaderInfoLog(vertexShaderObject, //whose?
+								   iInfoLogLength,	 //length?
+								   &written,		   //might have not used all, give that much only which have been used in what?
+								   szInfoLog);		   //store in what?
 
 				fprintf(gpFile, "\nVertex Shader Compilation Log : %s\n", szInfoLog);
 
@@ -388,27 +386,26 @@ int initialize(void)
 
 	//write fragment shader code
 	const GLchar *tessellationControlShaderSourceCode =
-		"#version 450 core" \
-		"\n" \
-		"layout(vertices=4)out;" \
-		"uniform int u_numberOfSegments;" \
-		"uniform int u_numberOfStrips;" \
-		"void main(void)" \
-		"{" \
-		"	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;" \
-		"	gl_TessLevelOuter[0] = float(u_numberOfStrips);" \
-		"	gl_TessLevelOuter[1] = float(u_numberOfSegments);" \
+		"#version 450 core"
+		"\n"
+		"layout(vertices=4)out;"
+		"uniform int u_numberOfSegments;"
+		"uniform int u_numberOfStrips;"
+		"void main(void)"
+		"{"
+		"	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;"
+		"	gl_TessLevelOuter[0] = float(u_numberOfStrips);"
+		"	gl_TessLevelOuter[1] = float(u_numberOfSegments);"
 		"}";
 
 	//specify the above source code to fragment shader object
 	glShaderSource(tessellationControlShaderObject,
-		1,
-		(const GLchar **)&tessellationControlShaderSourceCode,
-		NULL);
+				   1,
+				   (const GLchar **)&tessellationControlShaderSourceCode,
+				   NULL);
 
 	//compile the fragment shader
 	glCompileShader(tessellationControlShaderObject);
-
 
 	//Error checking for compilation
 	iShaderCompileStatus = 0;
@@ -417,16 +414,16 @@ int initialize(void)
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
 	glGetShaderiv(tessellationControlShaderObject, // whose?
-		GL_COMPILE_STATUS,//what to get?
-		&iShaderCompileStatus);//in what?
+				  GL_COMPILE_STATUS,			   //what to get?
+				  &iShaderCompileStatus);		   //in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iShaderCompileStatus == GL_FALSE)
 	{
 		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
 		glGetShaderiv(tessellationControlShaderObject,
-			GL_INFO_LOG_LENGTH,
-			&iInfoLogLength);
+					  GL_INFO_LOG_LENGTH,
+					  &iInfoLogLength);
 
 		//Step 4 : if info log length > 0 , call glGetShaderInfoLog()
 		if (iInfoLogLength > 0)
@@ -438,10 +435,10 @@ int initialize(void)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(tessellationControlShaderObject,//whose?
-					iInfoLogLength,//length?
-					&written,//might have not used all, give that much only which have been used in what?
-					szInfoLog);//store in what?
+				glGetShaderInfoLog(tessellationControlShaderObject, //whose?
+								   iInfoLogLength,					//length?
+								   &written,						//might have not used all, give that much only which have been used in what?
+								   szInfoLog);						//store in what?
 
 				fprintf(gpFile, "\nTC Shader Compilation Log : %s\n", szInfoLog);
 
@@ -462,36 +459,35 @@ int initialize(void)
 
 	//write fragment shader code
 	const GLchar *tessellationEvaluationShaderSourceCode =
-		"#version 450 core" \
-		"\n" \
-		"layout(isolines)in;" \
-		"uniform mat4 u_mvp_matrix;" \
-		"void main(void)" \
-		"{" \
-		"	float u = gl_TessCoord.x;" \
-		"	vec3 p0 = gl_in[0].gl_Position.xyz;" \
-		"	vec3 p1 = gl_in[1].gl_Position.xyz;" \
-		"	vec3 p2 = gl_in[2].gl_Position.xyz;" \
-		"	vec3 p3 = gl_in[3].gl_Position.xyz;" \
-		"	float u1 = (1.0 - u);" \
-		"	float u2 = u * u;" \
-		"	float b3 = u2 * u;" \
-		"	float b2 = 3.0 * u2 * u1;" \
-		"	float b1 = 3.0 * u * u1 * u1;" \
-		"	float b0 = u1 * u1 * u1;" \
-		"	vec3 p = p0 * b0 + p1 * b1 + p2 * b2 + p3 * b3;" \
-		"	gl_Position = u_mvp_matrix * vec4(p, 1.0);" \
+		"#version 450 core"
+		"\n"
+		"layout(isolines)in;"
+		"uniform mat4 u_mvp_matrix;"
+		"void main(void)"
+		"{"
+		"	float u = gl_TessCoord.x;"
+		"	vec3 p0 = gl_in[0].gl_Position.xyz;"
+		"	vec3 p1 = gl_in[1].gl_Position.xyz;"
+		"	vec3 p2 = gl_in[2].gl_Position.xyz;"
+		"	vec3 p3 = gl_in[3].gl_Position.xyz;"
+		"	float u1 = (1.0 - u);"
+		"	float u2 = u * u;"
+		"	float b3 = u2 * u;"
+		"	float b2 = 3.0 * u2 * u1;"
+		"	float b1 = 3.0 * u * u1 * u1;"
+		"	float b0 = u1 * u1 * u1;"
+		"	vec3 p = p0 * b0 + p1 * b1 + p2 * b2 + p3 * b3;"
+		"	gl_Position = u_mvp_matrix * vec4(p, 1.0);"
 		"}";
 
 	//specify the above source code to fragment shader object
 	glShaderSource(tessellationEvaluationShaderObject,
-		1,
-		(const GLchar **)&tessellationEvaluationShaderSourceCode,
-		NULL);
+				   1,
+				   (const GLchar **)&tessellationEvaluationShaderSourceCode,
+				   NULL);
 
 	//compile the fragment shader
 	glCompileShader(tessellationEvaluationShaderObject);
-
 
 	//Error checking for compilation
 	iShaderCompileStatus = 0;
@@ -500,16 +496,16 @@ int initialize(void)
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
 	glGetShaderiv(tessellationEvaluationShaderObject, // whose?
-		GL_COMPILE_STATUS,//what to get?
-		&iShaderCompileStatus);//in what?
+				  GL_COMPILE_STATUS,				  //what to get?
+				  &iShaderCompileStatus);			  //in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iShaderCompileStatus == GL_FALSE)
 	{
 		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
 		glGetShaderiv(tessellationEvaluationShaderObject,
-			GL_INFO_LOG_LENGTH,
-			&iInfoLogLength);
+					  GL_INFO_LOG_LENGTH,
+					  &iInfoLogLength);
 
 		//Step 4 : if info log length > 0 , call glGetShaderInfoLog()
 		if (iInfoLogLength > 0)
@@ -521,10 +517,10 @@ int initialize(void)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(tessellationEvaluationShaderObject,//whose?
-					iInfoLogLength,//length?
-					&written,//might have not used all, give that much only which have been used in what?
-					szInfoLog);//store in what?
+				glGetShaderInfoLog(tessellationEvaluationShaderObject, //whose?
+								   iInfoLogLength,					   //length?
+								   &written,						   //might have not used all, give that much only which have been used in what?
+								   szInfoLog);						   //store in what?
 
 				fprintf(gpFile, "\nTE Shader Compilation Log : %s\n", szInfoLog);
 
@@ -545,24 +541,23 @@ int initialize(void)
 
 	//write fragment shader code
 	const GLchar *fragmentShaderSourceCode =
-		"#version 450 core" \
-		"\n" \
-		"uniform vec4 u_lineColor;" \
-		"out vec4 fragColor;" \
-		"void main(void)" \
-		"{" \
-		"fragColor = u_lineColor;" \
+		"#version 450 core"
+		"\n"
+		"uniform vec4 u_lineColor;"
+		"out vec4 fragColor;"
+		"void main(void)"
+		"{"
+		"fragColor = u_lineColor;"
 		"}";
 
 	//specify the above source code to fragment shader object
 	glShaderSource(fragmentShaderObject,
-		1,
-		(const GLchar **)&fragmentShaderSourceCode,
-		NULL);
+				   1,
+				   (const GLchar **)&fragmentShaderSourceCode,
+				   NULL);
 
 	//compile the fragment shader
 	glCompileShader(fragmentShaderObject);
-
 
 	//Error checking for compilation
 	iShaderCompileStatus = 0;
@@ -570,17 +565,17 @@ int initialize(void)
 	szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(fragmentShaderObject, // whose?
-		GL_COMPILE_STATUS,//what to get?
-		&iShaderCompileStatus);//in what?
+	glGetShaderiv(fragmentShaderObject,   // whose?
+				  GL_COMPILE_STATUS,	  //what to get?
+				  &iShaderCompileStatus); //in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iShaderCompileStatus == GL_FALSE)
 	{
 		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
 		glGetShaderiv(fragmentShaderObject,
-			GL_INFO_LOG_LENGTH,
-			&iInfoLogLength);
+					  GL_INFO_LOG_LENGTH,
+					  &iInfoLogLength);
 
 		//Step 4 : if info log length > 0 , call glGetShaderInfoLog()
 		if (iInfoLogLength > 0)
@@ -592,10 +587,10 @@ int initialize(void)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(fragmentShaderObject,//whose?
-					iInfoLogLength,//length?
-					&written,//might have not used all, give that much only which have been used in what?
-					szInfoLog);//store in what?
+				glGetShaderInfoLog(fragmentShaderObject, //whose?
+								   iInfoLogLength,		 //length?
+								   &written,			 //might have not used all, give that much only which have been used in what?
+								   szInfoLog);			 //store in what?
 
 				fprintf(gpFile, "\nFragment Shader Compilation Log : %s\n", szInfoLog);
 
@@ -613,30 +608,28 @@ int initialize(void)
 	gShaderProgramObject = glCreateProgram();
 
 	//Attach vertex shader to shader program
-	glAttachShader(gShaderProgramObject,//to whom?
-		vertexShaderObject);//what to attach?
+	glAttachShader(gShaderProgramObject, //to whom?
+				   vertexShaderObject);  //what to attach?
 
 	//Attach TC shader to shader program
-	glAttachShader(gShaderProgramObject,//to whom?
-		tessellationControlShaderObject);//what to attach?
+	glAttachShader(gShaderProgramObject,			 //to whom?
+				   tessellationControlShaderObject); //what to attach?
 
 	//Attach TC shader to shader program
-	glAttachShader(gShaderProgramObject,//to whom?
-		tessellationEvaluationShaderObject);//what to attach?
-
+	glAttachShader(gShaderProgramObject,				//to whom?
+				   tessellationEvaluationShaderObject); //what to attach?
 
 	//Attach fragment shader to shader program
 	glAttachShader(gShaderProgramObject,
-		fragmentShaderObject);
+				   fragmentShaderObject);
 
 	//Pre-Linking binding to vertex attribute
 	glBindAttribLocation(gShaderProgramObject,
-		AMC_ATTRIBUTE_POSITION,
-		"vPosition");
+						 AMC_ATTRIBUTE_POSITION,
+						 "vPosition");
 
 	//Link the shader program
-	glLinkProgram(gShaderProgramObject);//link to whom?
-
+	glLinkProgram(gShaderProgramObject); //link to whom?
 
 	//Error checking for linking
 	GLint iProgramLinkStatus = 0;
@@ -645,16 +638,16 @@ int initialize(void)
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
 	glGetProgramiv(gShaderProgramObject, // whose?
-		GL_LINK_STATUS,//what to get?
-		&iProgramLinkStatus);//in what?
+				   GL_LINK_STATUS,		 //what to get?
+				   &iProgramLinkStatus); //in what?
 
 	//Step 2 : Check shader compile status for GL_FALSE
 	if (iProgramLinkStatus == GL_FALSE)
 	{
 		//Step 3 : If GL_FALSE , call glGetShaderiv() again , but this time to get info log length
 		glGetShaderiv(gShaderProgramObject,
-			GL_INFO_LOG_LENGTH,
-			&iInfoLogLength);
+					  GL_INFO_LOG_LENGTH,
+					  &iInfoLogLength);
 
 		//Step 4 : if info log length > 0 , call glGetShaderInfoLog()
 		if (iInfoLogLength > 0)
@@ -665,10 +658,10 @@ int initialize(void)
 			{
 				GLsizei written;
 
-				glGetShaderInfoLog(gShaderProgramObject,//whose?
-					iInfoLogLength,//length?
-					&written,//might have not used all, give that much only which have been used in what?
-					szInfoLog);//store in what?
+				glGetShaderInfoLog(gShaderProgramObject, //whose?
+								   iInfoLogLength,		 //length?
+								   &written,			 //might have not used all, give that much only which have been used in what?
+								   szInfoLog);			 //store in what?
 
 				fprintf(gpFile, "\nShader Program Linking Log : %s\n", szInfoLog);
 
@@ -684,26 +677,26 @@ int initialize(void)
 
 	//Post-Linking reteriving uniform location
 	mvpUniform = glGetUniformLocation(gShaderProgramObject,
-		"u_mvp_matrix");
+									  "u_mvp_matrix");
 
 	gNumberOfSegmentsUniform = glGetUniformLocation(gShaderProgramObject,
-		"u_numberOfSegments");
+													"u_numberOfSegments");
 
 	gNumberOfStripsUniform = glGetUniformLocation(gShaderProgramObject,
-		"u_numberOfStrips");
+												  "u_numberOfStrips");
 
 	gLineColorUniform = glGetUniformLocation(gShaderProgramObject,
-		"u_lineColor");
+											 "u_lineColor");
 
-	//above is the preparation of data transfer from CPU to GPU 
+	//above is the preparation of data transfer from CPU to GPU
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
 	//array initialization (glBegin() and glEnd())
 	const GLfloat vertices[] = {
-		-1.0f,-1.0f,
-		-0.5f,1.0f,
-		0.5f,-1.0f,
-		1.0f,-1.0f };
+		-1.0f, -1.0f,
+		-0.5f, 1.0f,
+		0.5f, -1.0f,
+		1.0f, -1.0f};
 
 	//create vao (vertex array object)
 	glGenVertexArrays(1, &vao);
@@ -719,17 +712,17 @@ int initialize(void)
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
-		8 * sizeof(float),
-		vertices,
-		GL_STATIC_DRAW);
+				 8 * sizeof(float),
+				 vertices,
+				 GL_STATIC_DRAW);
 
 	//attach or map attribute pointer to vbo's buffer
 	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		0,
-		NULL);
+						  2,
+						  GL_FLOAT,
+						  GL_FALSE,
+						  0,
+						  NULL);
 
 	//enable vertex attribute array
 	glEnableVertexAttribArray(AMC_ATTRIBUTE_POSITION);
@@ -755,9 +748,8 @@ int initialize(void)
 
 	resize(WIN_WIDTH, WIN_HEIGHT);
 
-	return(0);
+	return (0);
 }
-
 
 void resize(int width, int height)
 {
@@ -796,12 +788,11 @@ void display(void)
 	modelViewMatrix = modelViewMatrix * translationMatrix;
 	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
 
-
 	//send necessary matrices to shader in respective uniforms
-	glUniformMatrix4fv(mvpUniform,//which uniform?
-		1,//how many matrices
-		GL_FALSE,//have to transpose?
-		modelViewProjectionMatrix);//actual matrix
+	glUniformMatrix4fv(mvpUniform,				   //which uniform?
+					   1,						   //how many matrices
+					   GL_FALSE,				   //have to transpose?
+					   modelViewProjectionMatrix); //actual matrix
 
 	glUniform1i(gNumberOfSegmentsUniform, gNumberOfLineSegments);
 	glUniform1i(gNumberOfStripsUniform, 1);
@@ -825,8 +816,8 @@ void display(void)
 	//glPatchParameteri(GL_PATCH_VERTICES, 4);
 	//now draw the necessary scene
 	glDrawArrays(GL_PATCHES,
-		0,
-		4);
+				 0,
+				 4);
 
 	//unbind vao
 	glBindVertexArray(0);
@@ -835,13 +826,11 @@ void display(void)
 	glUseProgram(0);
 
 	SwapBuffers(ghdc);
-
 }
 
 void update(void)
 {
 }
-
 
 void uninitialize(void)
 {
@@ -867,8 +856,8 @@ void uninitialize(void)
 
 		//ask the program how many shaders are attached to you?
 		glGetProgramiv(gShaderProgramObject,
-			GL_ATTACHED_SHADERS,
-			&shaderCount);
+					   GL_ATTACHED_SHADERS,
+					   &shaderCount);
 
 		GLuint *pShaders = (GLuint *)malloc(sizeof(GLuint) * shaderCount);
 
@@ -878,15 +867,15 @@ void uninitialize(void)
 
 			//get shaders
 			glGetAttachedShaders(gShaderProgramObject,
-				shaderCount,
-				&shaderCount,
-				pShaders);
+								 shaderCount,
+								 &shaderCount,
+								 pShaders);
 
 			for (shaderNumber = 0; shaderNumber < shaderCount; shaderNumber++)
 			{
 				//detach
 				glDetachShader(gShaderProgramObject,
-					pShaders[shaderNumber]);
+							   pShaders[shaderNumber]);
 
 				//delete
 				glDeleteShader(pShaders[shaderNumber]);
@@ -911,12 +900,12 @@ void uninitialize(void)
 		SetWindowPlacement(ghWnd, &wpPrev);
 
 		SetWindowPos(ghWnd,
-			HWND_TOP,
-			0,
-			0,
-			0,
-			0,
-			SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER);
+					 HWND_TOP,
+					 0,
+					 0,
+					 0,
+					 0,
+					 SWP_NOZORDER | SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER);
 
 		ShowCursor(TRUE);
 	}
@@ -937,7 +926,6 @@ void uninitialize(void)
 		ReleaseDC(ghWnd, ghdc);
 		ghdc = NULL;
 	}
-
 
 	if (gpFile)
 	{
