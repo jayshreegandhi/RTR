@@ -134,6 +134,9 @@ int main(int argc, const char* argv[])
 
     GLuint mvpUniform;
 	GLuint samplerUniform;
+	
+	GLfloat rectangleTexCoord[8];
+	int keyPressed;
 
     vmath::mat4 perspectiveProjectionMatrix;
 }
@@ -431,13 +434,6 @@ int main(int argc, const char* argv[])
 		-1.0f, 1.0f, 0.0f,
 		1.0f, 1.0f, 0.0f};
 
-	const GLfloat rectangleTexCoord[] = {
-		1.0f, 1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f };
-
-
 	//------------------------------rectangle-------------------------------
 	//create vao rectangle(vertex array object)
 	glGenVertexArrays(1, &vao_rectangle);
@@ -481,9 +477,9 @@ int main(int argc, const char* argv[])
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(rectangleTexCoord),
-		rectangleTexCoord,
-		GL_STATIC_DRAW);
+		4 * 2 * sizeof(GLfloat),
+		NULL,
+		GL_DYNAMIC_DRAW);
 
 	//attach or map attribute pointer to vbo's buffer
 	glVertexAttribPointer(AMC_ATTRIBUTE_TEXCOORD0,
@@ -624,7 +620,7 @@ int main(int argc, const char* argv[])
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
-	modelViewMatrix = modelViewMatrix * translationMatrix;
+	modelViewMatrix = translationMatrix;
 	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
 
 
@@ -642,7 +638,62 @@ int main(int argc, const char* argv[])
 	//bind with vao
 	glBindVertexArray(vao_rectangle);
 
-	//similarly bind with textures if any
+	if (keyPressed == 1)
+	{
+		rectangleTexCoord[0] = 0.5f;
+		rectangleTexCoord[1] = 0.5f;
+		rectangleTexCoord[2] = 0.0f;
+		rectangleTexCoord[3] = 0.5f;
+		rectangleTexCoord[4] = 0.0f;
+		rectangleTexCoord[5] = 0.0f;
+		rectangleTexCoord[6] = 0.5f;
+		rectangleTexCoord[7] = 0.0f;
+	}
+	else if (keyPressed == 2)
+	{
+		rectangleTexCoord[0] = 1.0f;
+		rectangleTexCoord[1] = 1.0f;
+		rectangleTexCoord[2] = 0.0f;
+		rectangleTexCoord[3] = 1.0f;
+		rectangleTexCoord[4] = 0.0f;
+		rectangleTexCoord[5] = 0.0f;
+		rectangleTexCoord[6] = 1.0f;
+		rectangleTexCoord[7] = 0.0f;
+	}
+	else if (keyPressed == 3)
+	{
+		rectangleTexCoord[0] = 2.0f;
+		rectangleTexCoord[1] = 2.0f;
+		rectangleTexCoord[2] = 0.0f;
+		rectangleTexCoord[3] = 2.0f;
+		rectangleTexCoord[4] = 0.0f;
+		rectangleTexCoord[5] = 0.0f;
+		rectangleTexCoord[6] = 2.0f;
+		rectangleTexCoord[7] = 0.0f;
+
+	}
+	else if (keyPressed == 4)
+	{
+		rectangleTexCoord[0] = 0.5f;
+		rectangleTexCoord[1] = 0.5f;
+		rectangleTexCoord[2] = 0.5f;
+		rectangleTexCoord[3] = 0.5f;
+		rectangleTexCoord[4] = 0.5f;
+		rectangleTexCoord[5] = 0.5f;
+		rectangleTexCoord[6] = 0.5f;
+		rectangleTexCoord[7] = 0.5f;
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_texture_rectangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(rectangleTexCoord),
+		rectangleTexCoord,
+		GL_DYNAMIC_DRAW);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//now draw the necessary scene
 	glDrawArrays(GL_TRIANGLE_FAN,
@@ -683,8 +734,25 @@ int main(int argc, const char* argv[])
             [[self window]toggleFullScreen:self];
             break;
 
-        default:
-            break;
+		case 49:
+			keyPressed = 1;
+			break;
+
+		case 50:
+			keyPressed = 2;
+			break;
+
+		case 51:
+			keyPressed = 3;
+			break;
+
+		case 52:
+			keyPressed = 4;
+			break;
+
+		default:
+			keyPressed = 0;
+			break;
     }
 }
 
@@ -706,6 +774,11 @@ int main(int argc, const char* argv[])
 -(void)dealloc
 {
     //code
+	if (texture_smile)
+	{
+		glDeleteTextures(1, &texture_smile);
+	}
+
     if (vbo_texture_rectangle)
 	{
 		glDeleteBuffers(1, &vbo_texture_rectangle);

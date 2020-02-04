@@ -125,15 +125,22 @@ int main(int argc, const char* argv[])
     GLuint vertexShaderObject;
     GLuint fragmentShaderObject;
 
-    GLuint vao_rectangle;
+	GLuint vao_cube;
 
-	GLuint vbo_position_rectangle;
-	GLuint vbo_texture_rectangle;
+	GLuint vbo_position_cube;
+	GLuint vbo_normal_cube;
 
-	GLuint texture_smile;
+	GLfloat angleCube;
 
-    GLuint mvpUniform;
-	GLuint samplerUniform;
+	GLuint mvUniform;
+	GLuint pUniform;
+	GLuint ldUniform;
+	GLuint kdUniform;
+	GLuint lightPositionUniform;
+	GLuint lKeyPressedUniform;
+
+	bool gbAnimation;
+	bool gbLight;
 
     vmath::mat4 perspectiveProjectionMatrix;
 }
@@ -187,12 +194,10 @@ int main(int argc, const char* argv[])
     return(kCVReturnSuccess);
 }
 
-
 -(void)prepareOpenGL
 {
     //code
 	[super prepareOpenGL];
-
     //OpenGL info
 
     fprintf(gpFile, "OpenGL Version : %s\n", glGetString(GL_VERSION));
@@ -213,13 +218,25 @@ int main(int argc, const char* argv[])
 		"#version 410" \
 		"\n" \
 		"in vec4 vPosition;" \
-		"in vec2 vTexCoord;" \
-		"uniform mat4 u_mvp_matrix;" \
-		"out vec2 out_texcoord;" \
+		"in vec3 vNormal;" \
+		"uniform mat4 u_mv_matrix;" \
+		"uniform mat4 u_p_matrix;" \
+		"uniform int u_lKeyPressed;" \
+		"uniform vec3 u_ld;" \
+		"uniform vec3 u_kd;" \
+		"uniform vec4 u_light_position;" \
+		"out vec3 diffuse_color;" \
 		"void main(void)" \
 		"{" \
-		"	gl_Position = u_mvp_matrix * vPosition;" \
-		"	out_texcoord = vTexCoord;" \
+		"	if(u_lKeyPressed == 1)" \
+		"	{" \
+		"		vec4 eyeCoords = u_mv_matrix * vPosition;" \
+		"		mat3 normal_matrix = mat3(transpose(inverse(u_mv_matrix)));" \
+		"		vec3 tNormal = normalize(normal_matrix * vNormal);" \
+		"		vec3 s = normalize(vec3(u_light_position - eyeCoords));" \
+		"		diffuse_color = u_ld * u_kd * max(dot(s, tNormal), 0.0);" \
+		"	}" \
+		"	gl_Position = u_p_matrix * u_mv_matrix * vPosition;" \
 		"}";
 
 	//specify above source code to vertex shader object
@@ -285,12 +302,19 @@ int main(int argc, const char* argv[])
 	const GLchar *fragmentShaderSourceCode =
 		"#version 410" \
 		"\n" \
-		"in vec2 out_texcoord;" \
-		"uniform sampler2D u_sampler;" \
+		"uniform int u_lKeyPressed;" \
+		"in vec3 diffuse_color;" \
 		"out vec4 fragColor;" \
 		"void main(void)" \
 		"{" \
-		"	fragColor = texture(u_sampler, out_texcoord);" \
+		"	if(u_lKeyPressed == 1)" \
+		"	{" \
+		"		fragColor = vec4(diffuse_color,1.0);" \
+		"	}" \
+		"	else" \
+		"	{" \
+		"		fragColor = vec4(1.0, 1.0, 1.0, 1.0);" \
+		"	}" \
 		"}";
 
 	//specify the above source code to fragment shader object
@@ -364,8 +388,8 @@ int main(int argc, const char* argv[])
 		"vPosition");
 
 	glBindAttribLocation(shaderProgramObject,
-		AMC_ATTRIBUTE_TEXCOORD0,
-		"vTexCoord");
+		AMC_ATTRIBUTE_NORMAL,
+		"vNormal");
 
 	//Link the shader program
 	glLinkProgram(shaderProgramObject);//link to whom?
@@ -415,46 +439,104 @@ int main(int argc, const char* argv[])
 	}
 
 	//Post-Linking reteriving uniform location
-	mvpUniform = glGetUniformLocation(shaderProgramObject,
-		"u_mvp_matrix");
+	mvUniform = glGetUniformLocation(shaderProgramObject,
+		"u_mv_matrix");
 
-	samplerUniform = glGetUniformLocation(shaderProgramObject,
-		"u_sampler");
+	pUniform = glGetUniformLocation(shaderProgramObject,
+		"u_p_matrix");
+
+	lKeyPressedUniform = glGetUniformLocation(shaderProgramObject,
+		"u_lKeyPressed");
+
+	ldUniform = glGetUniformLocation(shaderProgramObject,
+		"u_ld");
+
+	kdUniform = glGetUniformLocation(shaderProgramObject,
+		"u_kd");
+
+	lightPositionUniform = glGetUniformLocation(shaderProgramObject,
+		"u_light_position");
 
 	//above is the preparation of data transfer from CPU to GPU
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
 	//array initialization (glBegin() and glEnd())
-	const GLfloat rectangleVertices[] = {
-		1.0f, -1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f};
 
-	const GLfloat rectangleTexCoord[] = {
-		1.0f, 1.0f,
-		0.0f,1.0f,
-		0.0f,0.0f,
-		1.0f,0.0f };
+	const GLfloat cubeVertices[] = {
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f };
+
+	const GLfloat cubeNormals[] = {
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+
+		0.0f, -1.0f, 0.0f,
+		0.0f, -1.0f, 0.0f,
+		0.0f, -1.0f, 0.0f,
+		0.0f, -1.0f, 0.0f,
+
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+
+		0.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f };
 
 
-	//------------------------------rectangle-------------------------------
+	//------------------------------cube-------------------------------
 	//create vao rectangle(vertex array object)
-	glGenVertexArrays(1, &vao_rectangle);
+	glGenVertexArrays(1, &vao_cube);
 
 	//Bind vao
-	glBindVertexArray(vao_rectangle);
+	glBindVertexArray(vao_cube);
 
 	//generate vertex buffers
-	glGenBuffers(1, &vbo_position_rectangle);
+	glGenBuffers(1, &vbo_position_cube);
 
 	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_rectangle);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_cube);
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(rectangleVertices),
-		rectangleVertices,
+		sizeof(cubeVertices),
+		cubeVertices,
 		GL_STATIC_DRAW);
 
 	//attach or map attribute pointer to vbo's buffer
@@ -472,29 +554,29 @@ int main(int argc, const char* argv[])
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
-	//--------------------texture------------------------
+	//--------------------normal------------------------
 	//generate vertex buffers
-	glGenBuffers(1, &vbo_texture_rectangle);
+	glGenBuffers(1, &vbo_normal_cube);
 
 	//bind buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_texture_rectangle);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_normal_cube);
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(rectangleTexCoord),
-		rectangleTexCoord,
+		sizeof(cubeNormals),
+		cubeNormals,
 		GL_STATIC_DRAW);
 
 	//attach or map attribute pointer to vbo's buffer
-	glVertexAttribPointer(AMC_ATTRIBUTE_TEXCOORD0,
-		2,
+	glVertexAttribPointer(AMC_ATTRIBUTE_NORMAL,
+		3,
 		GL_FLOAT,
 		GL_FALSE,
 		0,
 		NULL);
 
 	//enable vertex attribute array
-	glEnableVertexAttribArray(AMC_ATTRIBUTE_TEXCOORD0);
+	glEnableVertexAttribArray(AMC_ATTRIBUTE_NORMAL);
 
 	//unbind vbo
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -510,10 +592,6 @@ int main(int argc, const char* argv[])
     //set bk color
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	//texture
-	glEnable(GL_TEXTURE_2D);
-	texture_smile = [self loadTextureFromBMPFile:"Smile.bmp"];
-
     perspectiveProjectionMatrix = vmath::mat4::identity();
 
     CVDisplayLinkCreateWithActiveCGDisplays(&displayLink);
@@ -523,50 +601,6 @@ int main(int argc, const char* argv[])
 
     CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, cglContext, cglPixelFormat);
     CVDisplayLinkStart(displayLink);
-}
-
--(GLuint)loadTextureFromBMPFile:(const char *)texFileName
-{
-	NSBundle *mainBundle = [NSBundle mainBundle];
-	NSString *appDirName = [mainBundle bundlePath];
-	NSString *parentDirPath = [appDirName stringByDeletingLastPathComponent];
-	NSString *textureFileNameWithPath = [NSString stringWithFormat:@"%@/%s", parentDirPath, texFileName];
-
-	NSImage *bmpImage=[[NSImage alloc] initWithContentsOfFile:textureFileNameWithPath];
-	if(!bmpImage)
-	{
-		fprintf(gpFile, "Can't find texture\n");
-		return(0);
-	}
-
-	CGImageRef cgImage = [bmpImage CGImageForProposedRect:nil context:nil hints:nil];
-
-	int w = (int)CGImageGetWidth(cgImage);
-	int h = (int)CGImageGetHeight(cgImage);
-
-	CFDataRef imageData = CGDataProviderCopyData(CGImageGetDataProvider(cgImage));
-
-	void* pixels = (void *)CFDataGetBytePtr(imageData);
-
-	GLuint bmpTexture;
-	glGenTextures(1, &bmpTexture);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glBindTexture(GL_TEXTURE_2D, bmpTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D,
-					0,
-					GL_RGBA,
-					w,
-					h,
-					0,
-					GL_RGBA,
-					GL_UNSIGNED_BYTE,
-					pixels);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-	CFRelease(imageData);
-	return(bmpTexture);
 }
 
 -(void)reshape
@@ -608,45 +642,76 @@ int main(int argc, const char* argv[])
 	glUseProgram(shaderProgramObject);
 
 	//matrices
-	//matrices
 	vmath::mat4 modelViewMatrix;
-	vmath::mat4 modelViewProjectionMatrix;
+	vmath::mat4 projectionMatrix;
 	vmath::mat4 translationMatrix;
+	vmath::mat4 scaleMatrix;
+	vmath::mat4 rotationMatrix;
 
-	//-----------------------------Rectangle----------------------
+	//-----------------------------cube----------------------
 	//make identity
 	modelViewMatrix = vmath::mat4::identity();
-	modelViewProjectionMatrix = vmath::mat4::identity();
+	projectionMatrix = vmath::mat4::identity();
+	rotationMatrix = vmath::mat4::identity();
 	translationMatrix = vmath::mat4::identity();
 
 	//do necessary transformation
-	translationMatrix = vmath::translate(0.0f, 0.0f, -6.0f);
+	translationMatrix = vmath::translate(0.0f, 0.0f, -5.0f);
+	scaleMatrix = vmath::scale(0.75f, 0.75f, 0.75f);
+	rotationMatrix = vmath::rotate(angleCube, angleCube, angleCube);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
-	modelViewMatrix = modelViewMatrix * translationMatrix;
-	modelViewProjectionMatrix = perspectiveProjectionMatrix * modelViewMatrix;
+	modelViewMatrix = translationMatrix * scaleMatrix * rotationMatrix;
+	projectionMatrix = perspectiveProjectionMatrix;
 
 
 	//send necessary matrices to shader in respective uniforms
-	glUniformMatrix4fv(mvpUniform,//which uniform?
+	glUniformMatrix4fv(mvUniform,//which uniform?
 		1,//how many matrices
 		GL_FALSE,//have to transpose?
-		modelViewProjectionMatrix);//actual matrix
+		modelViewMatrix);//actual matrix
 
-	glActiveTexture(GL_TEXTURE0);
+	glUniformMatrix4fv(pUniform,//which uniform?
+		1,//how many matrices
+		GL_FALSE,//have to transpose?
+		projectionMatrix);//actual matrix
 
-	glBindTexture(GL_TEXTURE_2D, texture_smile);
-	glUniform1i(samplerUniform, 0);
+	if (gbLight == true)
+	{
+		glUniform1i(lKeyPressedUniform, 1);
+		glUniform3f(ldUniform, 1.0f, 1.0f, 1.0f);
+		glUniform3f(kdUniform, 0.5f, 0.5f, 0.5f);
+		glUniform4f(lightPositionUniform, 0.0f, 0.0f, 2.0f, 1.0f);
+	}
+	else
+	{
+		glUniform1i(lKeyPressedUniform, 0);
+	}
 
 	//bind with vao
-	glBindVertexArray(vao_rectangle);
+	glBindVertexArray(vao_cube);
 
 	//similarly bind with textures if any
 
 	//now draw the necessary scene
 	glDrawArrays(GL_TRIANGLE_FAN,
 		0,
+		4);
+	glDrawArrays(GL_TRIANGLE_FAN,
+		4,
+		4);
+	glDrawArrays(GL_TRIANGLE_FAN,
+		8,
+		4);
+	glDrawArrays(GL_TRIANGLE_FAN,
+		12,
+		4);
+	glDrawArrays(GL_TRIANGLE_FAN,
+		16,
+		4);
+	glDrawArrays(GL_TRIANGLE_FAN,
+		20,
 		4);
 
 	//unbind vao
@@ -657,6 +722,15 @@ int main(int argc, const char* argv[])
     CGLFlushDrawable((CGLContextObj)[[self openGLContext]CGLContextObj]);
     CGLUnlockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
 
+	if (gbAnimation == true)
+	{
+		angleCube = angleCube - 1.0f;
+
+		if (angleCube <= -360.0f)
+		{
+			angleCube = 0.0f;
+		}
+	}
 }
 
 -(BOOL)acceptsFirstResponder
@@ -683,6 +757,30 @@ int main(int argc, const char* argv[])
             [[self window]toggleFullScreen:self];
             break;
 
+		case 'l':
+		case 'L':
+			if (gbLight == false)
+			{
+				gbLight = true;
+			}
+			else
+			{
+				gbLight = false;
+			}
+			break;
+
+		case 'a':
+		case 'A':
+			if (gbAnimation == false)
+			{
+				gbAnimation = true;
+			}
+			else
+			{
+				gbAnimation = false;
+			}
+			break;
+
         default:
             break;
     }
@@ -706,22 +804,22 @@ int main(int argc, const char* argv[])
 -(void)dealloc
 {
     //code
-    if (vbo_texture_rectangle)
+    if (vbo_normal_cube)
 	{
-		glDeleteBuffers(1, &vbo_texture_rectangle);
-		vbo_texture_rectangle = 0;
+		glDeleteBuffers(1, &vbo_normal_cube);
+		vbo_normal_cube = 0;
 	}
 
-	if (vbo_position_rectangle)
+	if (vbo_position_cube)
 	{
-		glDeleteBuffers(1, &vbo_position_rectangle);
-		vbo_position_rectangle = 0;
+		glDeleteBuffers(1, &vbo_position_cube);
+		vbo_position_cube = 0;
 	}
 
-	if (vao_rectangle)
+	if (vao_cube)
 	{
-		glDeleteVertexArrays(1, &vao_rectangle);
-		vao_rectangle = 0;
+		glDeleteVertexArrays(1, &vao_cube);
+		vao_cube = 0;
 	}
 
 	if (shaderProgramObject)

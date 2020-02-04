@@ -8,12 +8,15 @@
 
 #import "vmath.h"
 
+#define CHECK_IMAGE_WIDTH 64
+#define CHECK_IMAGE_HEIGHT 64
+
 enum
 {
     AMC_ATTRIBUTE_POSITION = 0,
     AMC_ATTRIBUTE_COLOR,
     AMC_ATTRIBUTE_NORMAL,
-    AMC_ATTRIBUTE_TEXCOORD0,
+    AMC_ATTRIBUTE_TEXCOORD0
 };
 
 // C Style global function declaration
@@ -126,14 +129,16 @@ int main(int argc, const char* argv[])
     GLuint fragmentShaderObject;
 
     GLuint vao_rectangle;
-
 	GLuint vbo_position_rectangle;
 	GLuint vbo_texture_rectangle;
 
-	GLuint texture_smile;
+	GLuint texImage;
 
     GLuint mvpUniform;
 	GLuint samplerUniform;
+
+	GLubyte checkImage[CHECK_IMAGE_WIDTH][CHECK_IMAGE_HEIGHT][4];
+	GLfloat rectangleVertices[12];
 
     vmath::mat4 perspectiveProjectionMatrix;
 }
@@ -425,11 +430,6 @@ int main(int argc, const char* argv[])
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
 	//array initialization (glBegin() and glEnd())
-	const GLfloat rectangleVertices[] = {
-		1.0f, -1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f};
 
 	const GLfloat rectangleTexCoord[] = {
 		1.0f, 1.0f,
@@ -453,9 +453,9 @@ int main(int argc, const char* argv[])
 
 	//transfer vertex data(CPU) to GPU buffer
 	glBufferData(GL_ARRAY_BUFFER,
-		sizeof(rectangleVertices),
-		rectangleVertices,
-		GL_STATIC_DRAW);
+		4 * 3 * sizeof(GLfloat),
+		NULL,
+		GL_DYNAMIC_DRAW);
 
 	//attach or map attribute pointer to vbo's buffer
 	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
@@ -512,7 +512,7 @@ int main(int argc, const char* argv[])
 
 	//texture
 	glEnable(GL_TEXTURE_2D);
-	texture_smile = [self loadTextureFromBMPFile:"Smile.bmp"];
+	[self loadTexture];
 
     perspectiveProjectionMatrix = vmath::mat4::identity();
 
@@ -525,49 +525,50 @@ int main(int argc, const char* argv[])
     CVDisplayLinkStart(displayLink);
 }
 
--(GLuint)loadTextureFromBMPFile:(const char *)texFileName
+-(void)makeCheckImage
 {
-	NSBundle *mainBundle = [NSBundle mainBundle];
-	NSString *appDirName = [mainBundle bundlePath];
-	NSString *parentDirPath = [appDirName stringByDeletingLastPathComponent];
-	NSString *textureFileNameWithPath = [NSString stringWithFormat:@"%@/%s", parentDirPath, texFileName];
+	int i, j, c;
 
-	NSImage *bmpImage=[[NSImage alloc] initWithContentsOfFile:textureFileNameWithPath];
-	if(!bmpImage)
+	for (i = 0; i < CHECK_IMAGE_HEIGHT; i++)
 	{
-		fprintf(gpFile, "Can't find texture\n");
-		return(0);
+		for (j = 0; j < CHECK_IMAGE_WIDTH; j++)
+		{
+			c = (((i & 0x8) == 0) ^ ((j & 0x8) == 0)) * 255;
+			checkImage[i][j][0] = (GLubyte)c;
+			checkImage[i][j][1] = (GLubyte)c;
+			checkImage[i][j][2] = (GLubyte)c;
+			checkImage[i][j][3] = 255;
+		}
 	}
+}
 
-	CGImageRef cgImage = [bmpImage CGImageForProposedRect:nil context:nil hints:nil];
+-(void)loadTexture
+{
+	[self makeCheckImage];
 
-	int w = (int)CGImageGetWidth(cgImage);
-	int h = (int)CGImageGetHeight(cgImage);
-
-	CFDataRef imageData = CGDataProviderCopyData(CGImageGetDataProvider(cgImage));
-
-	void* pixels = (void *)CFDataGetBytePtr(imageData);
-
-	GLuint bmpTexture;
-	glGenTextures(1, &bmpTexture);
+	glGenTextures(1, &texImage);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glBindTexture(GL_TEXTURE_2D, bmpTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, texImage);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D,
 					0,
 					GL_RGBA,
-					w,
-					h,
+					CHECK_IMAGE_HEIGHT,
+					CHECK_IMAGE_HEIGHT,
 					0,
 					GL_RGBA,
 					GL_UNSIGNED_BYTE,
-					pixels);
+					checkImage);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
-	CFRelease(imageData);
-	return(bmpTexture);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 }
+
+
 
 -(void)reshape
 {
@@ -585,7 +586,7 @@ int main(int argc, const char* argv[])
 
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 
-    perspectiveProjectionMatrix = vmath::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+    perspectiveProjectionMatrix = vmath::perspective(60.0f, (GLfloat)width / (GLfloat)height, 1.0f, 30.0f);
 
     CGLUnlockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
 }
@@ -620,7 +621,7 @@ int main(int argc, const char* argv[])
 	translationMatrix = vmath::mat4::identity();
 
 	//do necessary transformation
-	translationMatrix = vmath::translate(0.0f, 0.0f, -6.0f);
+	translationMatrix = vmath::translate(0.0f, 0.0f, -3.6f);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
@@ -636,13 +637,64 @@ int main(int argc, const char* argv[])
 
 	glActiveTexture(GL_TEXTURE0);
 
-	glBindTexture(GL_TEXTURE_2D, texture_smile);
+	glBindTexture(GL_TEXTURE_2D, texImage);
 	glUniform1i(samplerUniform, 0);
 
 	//bind with vao
 	glBindVertexArray(vao_rectangle);
 
-	//similarly bind with textures if any
+	rectangleVertices[0] = -2.0f;
+	rectangleVertices[1] = -1.0f;
+	rectangleVertices[2] = 0.0f;
+	rectangleVertices[3] = -2.0f;
+	rectangleVertices[4] = 1.0f;
+	rectangleVertices[5] = 0.0f;
+	rectangleVertices[6] = 0.0f;
+	rectangleVertices[7] = 1.0f;
+	rectangleVertices[8] = 0.0f;
+	rectangleVertices[9] = 0.0f;
+	rectangleVertices[10] = -1.0f;
+	rectangleVertices[11] = 0.0f;
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_rectangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(rectangleVertices),
+		rectangleVertices,
+		GL_DYNAMIC_DRAW);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//now draw the necessary scene
+	glDrawArrays(GL_TRIANGLE_FAN,
+		0,
+		4);
+
+	rectangleVertices[0] = 1.0f;
+	rectangleVertices[1] = -1.0f;
+	rectangleVertices[2] = 0.0f;
+	rectangleVertices[3] = 1.0f;
+	rectangleVertices[4] = 1.0f;
+	rectangleVertices[5] = 0.0f;
+	rectangleVertices[6] = 2.41421f;
+	rectangleVertices[7] = 1.0f;
+	rectangleVertices[8] = -1.41421f;
+	rectangleVertices[9] = 2.41421f;
+	rectangleVertices[10] = -1.0f;
+	rectangleVertices[11] = -1.41421f;
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_position_rectangle);
+
+	//transfer vertex data(CPU) to GPU buffer
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(rectangleVertices),
+		rectangleVertices,
+		GL_DYNAMIC_DRAW);
+
+	//unbind vbo
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//now draw the necessary scene
 	glDrawArrays(GL_TRIANGLE_FAN,
@@ -706,6 +758,11 @@ int main(int argc, const char* argv[])
 -(void)dealloc
 {
     //code
+	if (texImage)
+	{
+		glDeleteTextures(1, &texImage);
+	}
+
     if (vbo_texture_rectangle)
 	{
 		glDeleteBuffers(1, &vbo_texture_rectangle);
