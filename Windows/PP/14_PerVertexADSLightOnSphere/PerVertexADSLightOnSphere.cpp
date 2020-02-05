@@ -748,9 +748,7 @@ void display(void)
 
 	//make identity
 	viewMatrix = mat4::identity();
-	;
 	modelMatrix = mat4::identity();
-	;
 	ProjectionMatrix = mat4::identity();
 	translationMatrix = mat4::identity();
 
