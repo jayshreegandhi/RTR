@@ -2,8 +2,13 @@
 #include<stdio.h>
 
 #include<d3d11.h>
+#include<d3dcompiler.h>
+
+#pragma warning(disable : 4838)
+#include"XNAMath/xnamath.h"
 
 #pragma comment(lib,"d3d11.lib")
+#pragma comment(lib, "D3dcompiler.lib")
 
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
@@ -31,6 +36,19 @@ IDXGISwapChain *gpIDXGISwapChain = NULL;
 ID3D11Device *gpID3D11Device = NULL;
 ID3D11DeviceContext *gpID3D11DeviceContext = NULL;
 ID3D11RenderTargetView *gpID3D11RenderTargetView = NULL;
+
+ID3D11VertexShader *gpID3D11VertexShader = NULL;
+ID3D11PixelShader *gpID3D11PixelShader = NULL;
+ID3D11Buffer *gpID3D11Buffer_VertexBuffer = NULL;
+ID3D11InputLayout *gpID3D11InputLayout = NULL;
+ID3D11Buffer *gpID3D11Buffer_ConstantBuffer = NULL;
+
+struct CBUFFER
+{
+	XMMATRIX WorldViewProjectionMatrix;
+};
+
+XMMATRIX gOrthographicProjectionMatrix;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -335,6 +353,193 @@ HRESULT initialize(void)
 		fclose(gpFile);
 	}
 
+	//initialize shaders, input layout, constant buffers, etc.
+
+	//**********************VERTEX SHADER**********************************************
+	const char *vertexShaderSourceCode =
+		"cbuffer ConstantBuffer" \
+		"{" \
+		"float4x4 worldViewProjectionMatrix;" \
+		"}" \
+		"float4 main(float4 pos : POSITION) : SV_POSITION" \
+		"{" \
+		"	float4 position = mul(worldViewProjectionMatrix, pos);" \
+		"	return(position);" \
+		"}";
+
+	ID3DBlob *pID3DBlob_VertexShaderCode = NULL;
+	ID3DBlob *pID3DBlob_Error = NULL;
+
+	hr = D3DCompile(vertexShaderSourceCode,
+		lstrlenA(vertexShaderSourceCode) + 1,
+		"VS",
+		NULL,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"vs_5_0",
+		0,
+		0,
+		&pID3DBlob_VertexShaderCode,
+		&pID3DBlob_Error);
+
+	if (FAILED(hr))
+	{
+		if (pID3DBlob_Error != NULL)
+		{
+			fopen_s(&gpFile, gszLogFileName, "a+");
+			fprintf_s(gpFile, "D3DCompile() failed for vertex shader : %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fclose(gpFile);
+			pID3DBlob_Error->Release();
+			pID3DBlob_Error = NULL;
+			return(hr);
+		}
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "D3DCompile() succeeded for vertex shader.\n");
+		fclose(gpFile);
+	}
+
+	hr = gpID3D11Device->CreateVertexShader(pID3DBlob_VertexShaderCode->GetBufferPointer(),
+		pID3DBlob_VertexShaderCode->GetBufferSize(),
+		NULL,
+		&gpID3D11VertexShader);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() failed.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() succeeded.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+
+	gpID3D11DeviceContext->VSSetShader(gpID3D11VertexShader, NULL, 0);
+
+	//*************************PIXEL SHADER************************************
+	const char *pixelShaderSourceCode =
+		"float4 main(void) : SV_TARGET" \
+		"{" \
+		"	return(float4(1.0f, 1.0f, 1.0f, 1.0f));" \
+		"}";
+
+	ID3DBlob *pID3DBlob_PixelShaderCode = NULL;
+	pID3DBlob_Error = NULL;
+
+	hr = D3DCompile(pixelShaderSourceCode,
+		lstrlenA(pixelShaderSourceCode) + 1,
+		"PS",
+		NULL,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"ps_5_0",
+		0,
+		0,
+		&pID3DBlob_PixelShaderCode,
+		&pID3DBlob_Error);
+
+	if (FAILED(hr))
+	{
+		if (pID3DBlob_Error != NULL)
+		{
+			fopen_s(&gpFile, gszLogFileName, "a+");
+			fprintf_s(gpFile, "D3DCompile() failed for pixel shader : %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fclose(gpFile);
+			pID3DBlob_Error->Release();
+			pID3DBlob_Error = NULL;
+			return(hr);
+		}
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "D3DCompile() succeeded for pixel shader.\n");
+		fclose(gpFile);
+	}
+
+	hr = gpID3D11Device->CreatePixelShader(pID3DBlob_PixelShaderCode->GetBufferPointer(),
+		pID3DBlob_PixelShaderCode->GetBufferSize(),
+		NULL,
+		&gpID3D11PixelShader);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() failed.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() succeeded.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+
+	gpID3D11DeviceContext->PSSetShader(gpID3D11PixelShader, NULL, 0);
+
+	//create and set input layout
+	D3D11_INPUT_ELEMENT_DESC inputElementDesc;
+	inputElementDesc.SemanticName = "POSITION";
+	inputElementDesc.SemanticIndex = 0;
+	inputElementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	inputElementDesc.InputSlot = 0;
+	inputElementDesc.AlignedByteOffset = 0;
+	inputElementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	inputElementDesc.InstanceDataStepRate = 0;
+
+	hr = gpID3D11Device->CreateInputLayout(&inputElementDesc,
+		1,
+		pID3DBlob_VertexShaderCode->GetBufferPointer(),
+		pID3DBlob_VertexShaderCode->GetBufferSize(),
+		&gpID3D11InputLayout);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() failed.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() succeeded.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+
+	gpID3D11DeviceContext->IASetInputLayout(gpID3D11InputLayout);
+
+	pID3DBlob_VertexShaderCode->Release();
+	pID3DBlob_VertexShaderCode = NULL;
+
+	pID3DBlob_PixelShaderCode->Release();
+	pID3DBlob_PixelShaderCode = NULL;
+
+	float vertices[] =
+	{
+		0.0f, 50.0f, 0.0f,
+		50.0f, -50.0f, 0.0f,
+		-50.0f, -50.0f, 0.0f
+	};
+
+	//create vertex buffer
+	D3D11_BUFFER_DESC bufferDesc_VertexBuffer;
+	ZeroMemory(&bufferDesc_VertexBuffer, sizeof(D3D11_BUFFER_DESC));
+	bufferDesc_VertexBuffer.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc_VertexBuffer.ByteWidth = sizeof(float) * ARRAYSIZE(vertices);
+	bufferDesc_VertexBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc_VertexBuffer.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer,
+		NULL,
+		&gpID3D11Buffer_VertexBuffer);
 	//clear color
 	gClearColor[0] = 0.0f;
 	gClearColor[1] = 0.0f;
