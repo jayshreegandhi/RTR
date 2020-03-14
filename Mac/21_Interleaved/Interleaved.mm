@@ -127,21 +127,39 @@ int main(int argc, const char* argv[])
 
 	GLuint vao_cube;
 
-	GLuint vbo_position_cube;
-	GLuint vbo_normal_cube;
+	GLuint vbo_cube;
 
 	GLfloat angleCube;
 
-	GLuint mvUniform;
-	GLuint pUniform;
-	GLuint ldUniform;
-	GLuint kdUniform;
-	GLuint lightPositionUniform;
-	GLuint lKeyPressedUniform;
+	GLuint viewUniform;
+	GLuint modelUniform;
+	GLuint projectionUniform;
 
-	bool gbAnimation;
+	GLuint laUniform;
+	GLuint ldUniform;
+	GLuint lsUniform;
+	GLuint lightPositionUniform;
+
+	GLuint kaUniform;
+	GLuint kdUniform;
+	GLuint ksUniform;
+	GLuint materialShininessUniform;
+
+	GLuint lKeyPressedUniform;
+	GLuint samplerUniform;
+
+	mat4 perspectiveProjectionMatrix;
 	bool gbLight;
 
+	GLfloat LightAmbient[4];
+	GLfloat LightDiffuse[4];
+	GLfloat LightSpecular[4];
+	GLfloat LightPosition[4];
+
+	GLfloat MaterialAmbient[4];
+	GLfloat MaterialDiffuse[4];
+	GLfloat MaterialSpecular[4];
+	GLfloat MaterialShininess;
     vmath::mat4 perspectiveProjectionMatrix;
 }
 
@@ -207,6 +225,43 @@ int main(int argc, const char* argv[])
 
     GLint swapInt = 1;
     [[self openGLContext]setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+
+	LightAmbient[0] = 0.25f;
+	LightAmbient[1] = 0.25f;
+	LightAmbient[2] = 0.25f;
+	LightAmbient[3] = 0.0f;
+
+	LightDiffuse[0] = 1.0f;
+	LightDiffuse[1] = 1.0f;
+	LightDiffuse[2] = 1.0f;
+	LightDiffuse[3] = 1.0f;
+
+	LightSpecular[0] = 1.0f;
+	LightSpecular[1] = 1.0f;
+	LightSpecular[2] = 1.0f;
+	LightSpecular[3] = 1.0f;
+
+	LightPosition[0] = 100.0f;
+	LightPosition[1] = 100.0f;
+	LightPosition[2] = 100.0f;
+	LightPosition[3] = 1.0f;
+
+	MaterialAmbient[0] = 0.0f;
+	MaterialAmbient[1] = 0.0f;
+	MaterialAmbient[2] = 0.0f;
+	MaterialAmbient[3] = 0.0f;
+
+	MaterialDiffuse[0] = 1.0f;
+	MaterialDiffuse[1] = 1.0f;
+	MaterialDiffuse[2] = 1.0f;
+	MaterialDiffuse[3] = 1.0f;
+
+	MaterialSpecular[0] = 1.0f;
+	MaterialSpecular[1] = 1.0f;
+	MaterialSpecular[2] = 1.0f;
+	MaterialSpecular[3] = 1.0f;
+
+	MaterialShininess = 128.0f;
 
     //****************1. VERTEX SHADER****************
     //define vertex shader object
