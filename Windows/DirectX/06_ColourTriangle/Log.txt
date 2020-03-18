@@ -9,7 +9,8 @@ ID3D11Device::CreateVertexShader() succeeded.
 D3DCompile() succeeded for pixel shader.
 ID3D11Device::CreatePixelShader() succeeded.
 ID3D11Device::CreateInputLayout() succeeded.
-ID3D11Device::CreateBuffer() succeeded for vertex buffer.
+ID3D11Device::CreateBuffer() succeeded for vertex buffer position triangle.
+ID3D11Device::CreateBuffer() succeeded for vertex buffer color triangle.
 ID3D11Device::CreateBuffer() succeeded for constant buffer.
 ID3D11Device::CreateRenderTargetView() succeeded.
 resize() succeeded.

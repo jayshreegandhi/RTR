@@ -48,7 +48,7 @@ struct CBUFFER
 	XMMATRIX WorldViewProjectionMatrix;
 };
 
-XMMATRIX gOrthographicProjectionMatrix;
+XMMATRIX gPerspectiveProjectionMatrix;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -524,9 +524,10 @@ HRESULT initialize(void)
 
 	float vertices[] =
 	{
-		0.0f, 50.0f, 0.0f,
-		50.0f, -50.0f, 0.0f,
-		-50.0f, -50.0f, 0.0f
+		-1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f
 	};
 
 	//create vertex buffer
@@ -589,10 +590,10 @@ HRESULT initialize(void)
 	//clear color
 	gClearColor[0] = 0.0f;
 	gClearColor[1] = 0.0f;
-	gClearColor[2] = 1.0f;
+	gClearColor[2] = 0.0f;
 	gClearColor[3] = 1.0f;
 
-	gOrthographicProjectionMatrix = XMMatrixIdentity();
+	gPerspectiveProjectionMatrix = XMMatrixIdentity();
 
 	hr = resize(WIN_WIDTH, WIN_HEIGHT);
 	if (FAILED(hr))
@@ -658,24 +659,7 @@ HRESULT resize(int width, int height)
 	d3dViewport.MaxDepth = 1.0f;
 	gpID3D11DeviceContext->RSSetViewports(1, &d3dViewport);
 
-	if (width <= height)
-	{
-		gOrthographicProjectionMatrix = XMMatrixOrthographicOffCenterLH(-100.0f,
-			100.0f,
-			(-100.0f * (float)height / (float)width),
-			(100.0f * (float)height / (float)width),
-			-100.0f,
-			100.0f);
-	}
-	else
-	{
-		gOrthographicProjectionMatrix = XMMatrixOrthographicOffCenterLH((-100.0f * (float)width / (float)height),
-			(100.0f * (float)width / (float)height),
-			-100.0f,
-			100.0f,
-			-100.0f,
-			100.0f);
-	}
+	gPerspectiveProjectionMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
 	return(hr);
 }
@@ -687,16 +671,20 @@ void display(void)
 	UINT offset = 0;
 	gpID3D11DeviceContext->IASetVertexBuffers(0, 1, &gpID3D11Buffer_VertexBuffer, &stride, &offset);
 
-	gpID3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	gpID3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	XMMATRIX worldMatrix = XMMatrixIdentity();
 	XMMATRIX viewMatrix = XMMatrixIdentity();
-	XMMATRIX wvpMatrix = worldMatrix * viewMatrix * gOrthographicProjectionMatrix;
+	XMMATRIX translationMatrix = XMMatrixIdentity();
+
+	translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 6.0f);
+	worldMatrix = worldMatrix * translationMatrix;
+	XMMATRIX wvpMatrix = worldMatrix * viewMatrix * gPerspectiveProjectionMatrix;
 
 	CBUFFER constantBuffer;
 	constantBuffer.WorldViewProjectionMatrix = wvpMatrix;
-	gpID3D11DeviceContext->UpdateSubresource(gpID3D11Buffer_ConstantBuffer, 0, NULL, &constantBuffer, 0, 0);	
-	gpID3D11DeviceContext->Draw(3, 0);
+	gpID3D11DeviceContext->UpdateSubresource(gpID3D11Buffer_ConstantBuffer, 0, NULL, &constantBuffer, 0, 0);
+	gpID3D11DeviceContext->Draw(4, 0);
 
 	gpIDXGISwapChain->Present(0, 0);
 }

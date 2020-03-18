@@ -39,7 +39,14 @@ ID3D11RenderTargetView *gpID3D11RenderTargetView = NULL;
 
 ID3D11VertexShader *gpID3D11VertexShader = NULL;
 ID3D11PixelShader *gpID3D11PixelShader = NULL;
-ID3D11Buffer *gpID3D11Buffer_VertexBuffer = NULL;
+
+ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Position_Triangle = NULL;
+ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Color_Triangle = NULL;
+
+
+ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Position_Rectangle = NULL;
+ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Color_Rectangle = NULL;
+
 ID3D11InputLayout *gpID3D11InputLayout = NULL;
 ID3D11Buffer *gpID3D11Buffer_ConstantBuffer = NULL;
 
@@ -48,7 +55,7 @@ struct CBUFFER
 	XMMATRIX WorldViewProjectionMatrix;
 };
 
-XMMATRIX gOrthographicProjectionMatrix;
+XMMATRIX gPerspectiveProjectionMatrix;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
@@ -361,10 +368,17 @@ HRESULT initialize(void)
 		"{" \
 		"float4x4 worldViewProjectionMatrix;" \
 		"}" \
-		"float4 main(float4 pos : POSITION) : SV_POSITION" \
+		"struct vertex_output" \
+		"{"
+		"float4 position : SV_POSITION;" \
+		"float4 color : COLOR;" \
+		"};" \
+		"vertex_output main(float4 pos : POSITION, float4 color : COLOR)" \
 		"{" \
-		"	float4 position = mul(worldViewProjectionMatrix, pos);" \
-		"	return(position);" \
+		"	vertex_output output;" \
+		"	output.position = mul(worldViewProjectionMatrix, pos);" \
+		"	output.color = color;" \
+		"	return(output);" \
 		"}";
 
 	ID3DBlob *pID3DBlob_VertexShaderCode = NULL;
@@ -424,9 +438,9 @@ HRESULT initialize(void)
 
 	//*************************PIXEL SHADER************************************
 	const char *pixelShaderSourceCode =
-		"float4 main(void) : SV_TARGET" \
+		"float4 main(float4 pos : SV_POSITION, float4 color : COLOR) : SV_TARGET" \
 		"{" \
-		"	return(float4(1.0f, 1.0f, 1.0f, 1.0f));" \
+		"	return(color);" \
 		"}";
 
 	ID3DBlob *pID3DBlob_PixelShaderCode = NULL;
@@ -485,17 +499,27 @@ HRESULT initialize(void)
 	gpID3D11DeviceContext->PSSetShader(gpID3D11PixelShader, NULL, 0);
 
 	//create and set input layout
-	D3D11_INPUT_ELEMENT_DESC inputElementDesc;
-	inputElementDesc.SemanticName = "POSITION";
-	inputElementDesc.SemanticIndex = 0;
-	inputElementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	inputElementDesc.InputSlot = 0;
-	inputElementDesc.AlignedByteOffset = 0;
-	inputElementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	inputElementDesc.InstanceDataStepRate = 0;
+	D3D11_INPUT_ELEMENT_DESC inputElementDesc[2];
+	//position
+	inputElementDesc[0].SemanticName = "POSITION";
+	inputElementDesc[0].SemanticIndex = 0;
+	inputElementDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	inputElementDesc[0].InputSlot = 0;
+	inputElementDesc[0].AlignedByteOffset = 0;
+	inputElementDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	inputElementDesc[0].InstanceDataStepRate = 0;
 
-	hr = gpID3D11Device->CreateInputLayout(&inputElementDesc,
-		1,
+	//position
+	inputElementDesc[1].SemanticName = "COLOR";
+	inputElementDesc[1].SemanticIndex = 0;
+	inputElementDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	inputElementDesc[1].InputSlot = 1;
+	inputElementDesc[1].AlignedByteOffset = 0;
+	inputElementDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+	inputElementDesc[1].InstanceDataStepRate = 0;
+
+	hr = gpID3D11Device->CreateInputLayout(inputElementDesc,
+		_ARRAYSIZE(inputElementDesc),
 		pID3DBlob_VertexShaderCode->GetBufferPointer(),
 		pID3DBlob_VertexShaderCode->GetBufferSize(),
 		&gpID3D11InputLayout);
@@ -522,44 +546,172 @@ HRESULT initialize(void)
 	pID3DBlob_PixelShaderCode->Release();
 	pID3DBlob_PixelShaderCode = NULL;
 
-	float vertices[] =
+	float triangleVertices[] =
 	{
-		0.0f, 50.0f, 0.0f,
-		50.0f, -50.0f, 0.0f,
-		-50.0f, -50.0f, 0.0f
+		0.0f, 1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f
+	};
+
+	float triangleColor[] =
+	{
+		1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f
+	};
+
+	float rectangleVertices[] =
+	{
+		-1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,
+
+		-1.0f, -1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f
+	};
+
+	float rectangleColor[] =
+	{
+		1.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 1.0f,
+
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
 	};
 
 	//create vertex buffer
-	D3D11_BUFFER_DESC bufferDesc_VertexBuffer;
-	ZeroMemory(&bufferDesc_VertexBuffer, sizeof(D3D11_BUFFER_DESC));
-	bufferDesc_VertexBuffer.Usage = D3D11_USAGE_DYNAMIC;
-	bufferDesc_VertexBuffer.ByteWidth = sizeof(float) * ARRAYSIZE(vertices);
-	bufferDesc_VertexBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc_VertexBuffer.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//triangle
+	//position
+	D3D11_BUFFER_DESC bufferDesc_VertexBuffer_Poition_Triangle;
+	ZeroMemory(&bufferDesc_VertexBuffer_Poition_Triangle, sizeof(D3D11_BUFFER_DESC));
+	bufferDesc_VertexBuffer_Poition_Triangle.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc_VertexBuffer_Poition_Triangle.ByteWidth = sizeof(float) * ARRAYSIZE(triangleVertices);
+	bufferDesc_VertexBuffer_Poition_Triangle.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc_VertexBuffer_Poition_Triangle.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer,
+	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Poition_Triangle,
 		NULL,
-		&gpID3D11Buffer_VertexBuffer);
+		&gpID3D11Buffer_VertexBuffer_Position_Triangle);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer position triangle.\n");
 		fclose(gpFile);
 		return(hr);
 	}
 	else
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() succeeded for vertex buffer.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() succeeded for vertex buffer position triangle.\n");
 		fclose(gpFile);
 	}
 
 	//copy vertices in above buffer
 	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 	ZeroMemory(&mappedSubresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
-	memcpy(mappedSubresource.pData, vertices, sizeof(vertices));
-	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer, NULL);
+	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_Position_Triangle, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+	memcpy(mappedSubresource.pData, triangleVertices, sizeof(triangleVertices));
+	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_Position_Triangle, NULL);
+
+	//color
+	D3D11_BUFFER_DESC bufferDesc_VertexBuffer_Color_Triangle;
+	ZeroMemory(&bufferDesc_VertexBuffer_Color_Triangle, sizeof(D3D11_BUFFER_DESC));
+	bufferDesc_VertexBuffer_Color_Triangle.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc_VertexBuffer_Color_Triangle.ByteWidth = sizeof(float) * ARRAYSIZE(triangleColor);
+	bufferDesc_VertexBuffer_Color_Triangle.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc_VertexBuffer_Color_Triangle.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Color_Triangle,
+		NULL,
+		&gpID3D11Buffer_VertexBuffer_Color_Triangle);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer color triangle.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() succeeded for vertex buffer color triangle.\n");
+		fclose(gpFile);
+	}
+
+	//copy vertices in above buffer
+	//D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+	ZeroMemory(&mappedSubresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_Color_Triangle, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+	memcpy(mappedSubresource.pData, triangleColor, sizeof(triangleColor));
+	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_Color_Triangle, NULL);
+
+
+	//rectangle
+	//position
+	D3D11_BUFFER_DESC bufferDesc_VertexBuffer_Poition_Rectangle;
+	ZeroMemory(&bufferDesc_VertexBuffer_Poition_Rectangle, sizeof(D3D11_BUFFER_DESC));
+	bufferDesc_VertexBuffer_Poition_Rectangle.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc_VertexBuffer_Poition_Rectangle.ByteWidth = sizeof(float) * ARRAYSIZE(rectangleVertices);
+	bufferDesc_VertexBuffer_Poition_Rectangle.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc_VertexBuffer_Poition_Rectangle.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Poition_Rectangle,
+		NULL,
+		&gpID3D11Buffer_VertexBuffer_Position_Rectangle);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer position rectangle.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() succeeded for vertex buffer position rectangle.\n");
+		fclose(gpFile);
+	}
+
+	//copy vertices in above buffer
+	ZeroMemory(&mappedSubresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_Position_Rectangle, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+	memcpy(mappedSubresource.pData, rectangleVertices, sizeof(rectangleVertices));
+	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_Position_Rectangle, NULL);
+
+	//color
+	D3D11_BUFFER_DESC bufferDesc_VertexBuffer_Color_Rectangle;
+	ZeroMemory(&bufferDesc_VertexBuffer_Color_Rectangle, sizeof(D3D11_BUFFER_DESC));
+	bufferDesc_VertexBuffer_Color_Rectangle.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc_VertexBuffer_Color_Rectangle.ByteWidth = sizeof(float) * ARRAYSIZE(rectangleColor);
+	bufferDesc_VertexBuffer_Color_Rectangle.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc_VertexBuffer_Color_Rectangle.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Color_Rectangle,
+		NULL,
+		&gpID3D11Buffer_VertexBuffer_Color_Rectangle);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer color rectangle.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() succeeded for vertex buffer color rectangle.\n");
+		fclose(gpFile);
+	}
+
+	//copy vertices in above buffer
+	//D3D11_MAPPED_SUBRESOURCE mappedSubresource;
+	ZeroMemory(&mappedSubresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_Color_Rectangle, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource);
+	memcpy(mappedSubresource.pData, rectangleColor, sizeof(rectangleColor));
+	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_Color_Rectangle, NULL);
 
 	//constant buffer;
 	D3D11_BUFFER_DESC bufferDesc_ConstantBuffer;
@@ -589,10 +741,10 @@ HRESULT initialize(void)
 	//clear color
 	gClearColor[0] = 0.0f;
 	gClearColor[1] = 0.0f;
-	gClearColor[2] = 1.0f;
+	gClearColor[2] = 0.0f;
 	gClearColor[3] = 1.0f;
 
-	gOrthographicProjectionMatrix = XMMatrixIdentity();
+	gPerspectiveProjectionMatrix = XMMatrixIdentity();
 
 	hr = resize(WIN_WIDTH, WIN_HEIGHT);
 	if (FAILED(hr))
@@ -658,24 +810,7 @@ HRESULT resize(int width, int height)
 	d3dViewport.MaxDepth = 1.0f;
 	gpID3D11DeviceContext->RSSetViewports(1, &d3dViewport);
 
-	if (width <= height)
-	{
-		gOrthographicProjectionMatrix = XMMatrixOrthographicOffCenterLH(-100.0f,
-			100.0f,
-			(-100.0f * (float)height / (float)width),
-			(100.0f * (float)height / (float)width),
-			-100.0f,
-			100.0f);
-	}
-	else
-	{
-		gOrthographicProjectionMatrix = XMMatrixOrthographicOffCenterLH((-100.0f * (float)width / (float)height),
-			(100.0f * (float)width / (float)height),
-			-100.0f,
-			100.0f,
-			-100.0f,
-			100.0f);
-	}
+	gPerspectiveProjectionMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
 	return(hr);
 }
@@ -683,20 +818,57 @@ HRESULT resize(int width, int height)
 void display(void)
 {
 	gpID3D11DeviceContext->ClearRenderTargetView(gpID3D11RenderTargetView, gClearColor);
+	
+	//triangle
+	//position
 	UINT stride = sizeof(float) * 3;
 	UINT offset = 0;
-	gpID3D11DeviceContext->IASetVertexBuffers(0, 1, &gpID3D11Buffer_VertexBuffer, &stride, &offset);
+	gpID3D11DeviceContext->IASetVertexBuffers(0, 1, &gpID3D11Buffer_VertexBuffer_Position_Triangle, &stride, &offset);
+
+	//color
+	stride = sizeof(float) * 3;
+	offset = 0;
+	gpID3D11DeviceContext->IASetVertexBuffers(1, 1, &gpID3D11Buffer_VertexBuffer_Color_Triangle, &stride, &offset);
 
 	gpID3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	XMMATRIX worldMatrix = XMMatrixIdentity();
 	XMMATRIX viewMatrix = XMMatrixIdentity();
-	XMMATRIX wvpMatrix = worldMatrix * viewMatrix * gOrthographicProjectionMatrix;
+	XMMATRIX translationMatrix = XMMatrixIdentity();
+
+	translationMatrix = XMMatrixTranslation(-1.5f, 0.0f, 6.0f);
+	worldMatrix = worldMatrix * translationMatrix;
+	XMMATRIX wvpMatrix = worldMatrix * viewMatrix * gPerspectiveProjectionMatrix;
 
 	CBUFFER constantBuffer;
 	constantBuffer.WorldViewProjectionMatrix = wvpMatrix;
-	gpID3D11DeviceContext->UpdateSubresource(gpID3D11Buffer_ConstantBuffer, 0, NULL, &constantBuffer, 0, 0);	
+	gpID3D11DeviceContext->UpdateSubresource(gpID3D11Buffer_ConstantBuffer, 0, NULL, &constantBuffer, 0, 0);
 	gpID3D11DeviceContext->Draw(3, 0);
+
+	//rectangle
+	//position
+	stride = sizeof(float) * 3;
+	offset = 0;
+	gpID3D11DeviceContext->IASetVertexBuffers(0, 1, &gpID3D11Buffer_VertexBuffer_Position_Rectangle, &stride, &offset);
+
+	//color
+	stride = sizeof(float) * 3;
+	offset = 0;
+	gpID3D11DeviceContext->IASetVertexBuffers(1, 1, &gpID3D11Buffer_VertexBuffer_Color_Rectangle, &stride, &offset);
+
+	gpID3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	worldMatrix = XMMatrixIdentity();
+	viewMatrix = XMMatrixIdentity();
+	translationMatrix = XMMatrixIdentity();
+
+	translationMatrix = XMMatrixTranslation(1.5f, 0.0f, 6.0f);
+	worldMatrix = worldMatrix * translationMatrix;
+	wvpMatrix = worldMatrix * viewMatrix * gPerspectiveProjectionMatrix;
+
+	constantBuffer.WorldViewProjectionMatrix = wvpMatrix;
+	gpID3D11DeviceContext->UpdateSubresource(gpID3D11Buffer_ConstantBuffer, 0, NULL, &constantBuffer, 0, 0);
+	gpID3D11DeviceContext->Draw(6, 0);
 
 	gpIDXGISwapChain->Present(0, 0);
 }
@@ -714,10 +886,28 @@ void uninitialize(void)
 		gpID3D11Buffer_ConstantBuffer = NULL;
 	}
 
-	if (gpID3D11Buffer_VertexBuffer)
+	if (gpID3D11Buffer_VertexBuffer_Color_Triangle)
 	{
-		gpID3D11Buffer_VertexBuffer->Release();
-		gpID3D11Buffer_VertexBuffer = NULL;
+		gpID3D11Buffer_VertexBuffer_Color_Triangle->Release();
+		gpID3D11Buffer_VertexBuffer_Color_Triangle = NULL;
+	}
+
+	if (gpID3D11Buffer_VertexBuffer_Position_Triangle)
+	{
+		gpID3D11Buffer_VertexBuffer_Position_Triangle->Release();
+		gpID3D11Buffer_VertexBuffer_Position_Triangle = NULL;
+	}
+
+	if (gpID3D11Buffer_VertexBuffer_Color_Rectangle)
+	{
+		gpID3D11Buffer_VertexBuffer_Color_Rectangle->Release();
+		gpID3D11Buffer_VertexBuffer_Color_Rectangle = NULL;
+	}
+
+	if (gpID3D11Buffer_VertexBuffer_Position_Rectangle)
+	{
+		gpID3D11Buffer_VertexBuffer_Position_Rectangle->Release();
+		gpID3D11Buffer_VertexBuffer_Position_Rectangle = NULL;
 	}
 
 	if (gpID3D11InputLayout)
