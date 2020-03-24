@@ -201,7 +201,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		gWidth = LOWORD(lParam);
 		gHeight = HIWORD(lParam);
-		
+
 		ratio = gWidth / gHeight;
 		resize(gWidth, gHeight);
 		break;
@@ -549,7 +549,7 @@ int initialize(void)
 	//Post-Linking reteriving uniform location
 	mvpUniform = glGetUniformLocation(gShaderProgramObject,
 		"u_mvp_matrix");
-	
+
 	//above is the preparation of data transfer from CPU to GPU 
 	//i.e glBindAttribLocation() & glGetUniformLocation()
 
@@ -568,17 +568,17 @@ int initialize(void)
 
 		pos = pos + space;
 	}*/
-	
+
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	glGenBuffers(1, &vbo_position);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_position);
-	
+
 	glBufferData(GL_ARRAY_BUFFER,
 		2 * 2 * sizeof(float),
 		NULL,
 		GL_DYNAMIC_DRAW);
-	
+
 	glVertexAttribPointer(AMC_ATTRIBUTE_POSITION,
 		2,
 		GL_FLOAT,
@@ -655,12 +655,12 @@ void display(void)
 		modelViewProjectionMatrix);//actual matrix
 
 	//bind with vao
-	
+
 
 	if (isSpaceKeyPressed == false)
 	{
 		glBindVertexArray(vao);
-		
+
 		float data = myScale * data_ecg[counter];
 
 		point[counter].x = gpos;
