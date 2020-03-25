@@ -1,0 +1,29 @@
+Log file created successfully...
+D3D11CreateDeviceAndSwapChain() succeeded.
+The choosen driver is of: 
+Hardware type. 
+The supported highest feature level is: 
+11.0 
+D3DCompile() succeeded for vertex shader.
+ID3D11Device::CreateVertexShader() succeeded.
+D3DCompile() succeeded for pixel shader.
+ID3D11Device::CreatePixelShader() succeeded.
+ID3D11Device::CreateInputLayout() succeeded.
+ID3D11Device::CreateBuffer() succeeded for vertex buffer position pyramid.
+ID3D11Device::CreateBuffer() succeeded for vertex buffer texture pyramid.
+ID3D11Device::CreateBuffer() succeeded for vertex buffer position cube.
+ID3D11Device::CreateBuffer() succeeded for vertex buffer texture cube.
+ID3D11Device::CreateBuffer() succeeded for constant buffer.
+ID3D11Device::CreateRasterizerState() succeeded for culling.
+CreateWICTextureFromFile() succeeded for texture resource.
+ID3D11Device::LoadD3DTexture() succeeded for pyramid texture.
+ID3D11Device::CreateSamplerState() succeeded for pyramid texture.
+CreateWICTextureFromFile() succeeded for texture resource.
+ID3D11Device::LoadD3DTexture() succeeded for pyramid texture.
+ID3D11Device::CreateSamplerState() succeeded for cube texture.
+ID3D11Device::CreateRenderTargetView() succeeded.
+ID3D11Device::CreateDepthStencilView() succeeded.
+resize() succeeded.
+initialize() succeeded.
+uninitialize() succeeded.
+Log file closed successfully.

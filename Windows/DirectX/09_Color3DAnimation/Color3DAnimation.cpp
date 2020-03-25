@@ -49,6 +49,9 @@ ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Color_Cube = NULL;
 ID3D11InputLayout *gpID3D11InputLayout = NULL;
 ID3D11Buffer *gpID3D11Buffer_ConstantBuffer = NULL;
 
+ID3D11RasterizerState *gpID3D11RasterizerState = NULL;
+ID3D11DepthStencilView *gpID3D11DepthStencilView = NULL;
+
 float anglePyramid = 0.0f;
 float angleCube = 0.0f;
 
@@ -877,6 +880,38 @@ HRESULT initialize(void)
 
 	gpID3D11DeviceContext->VSSetConstantBuffers(0, 1, &gpID3D11Buffer_ConstantBuffer);
 
+	//Raterization state
+	D3D11_RASTERIZER_DESC rasterizerDesc;
+	ZeroMemory((void *)&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rasterizerDesc.AntialiasedLineEnable = FALSE;
+	rasterizerDesc.CullMode = D3D11_CULL_NONE;
+	rasterizerDesc.DepthBias = 0;
+	rasterizerDesc.DepthBiasClamp = 0.0f;
+	rasterizerDesc.DepthClipEnable = TRUE;
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.FrontCounterClockwise = FALSE;
+	rasterizerDesc.MultisampleEnable = FALSE;
+	rasterizerDesc.ScissorEnable = FALSE;
+	rasterizerDesc.SlopeScaledDepthBias = 0.0f;
+
+	hr = gpID3D11Device->CreateRasterizerState(&rasterizerDesc, &gpID3D11RasterizerState);
+
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateRasterizerState() failed for culling.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateRasterizerState succeeded for culling.\n");
+		fclose(gpFile);
+	}
+
+	gpID3D11DeviceContext->RSSetState(gpID3D11RasterizerState);
+	
 	//clear color
 	gClearColor[0] = 0.0f;
 	gClearColor[1] = 0.0f;
@@ -908,6 +943,12 @@ HRESULT resize(int width, int height)
 {
 	HRESULT hr = S_OK;
 
+	if (gpID3D11DepthStencilView)
+	{
+		gpID3D11DepthStencilView->Release();
+		gpID3D11DepthStencilView = NULL;
+	}
+
 	if (gpID3D11RenderTargetView)
 	{
 		gpID3D11RenderTargetView->Release();
@@ -937,7 +978,49 @@ HRESULT resize(int width, int height)
 	pID3D11Texture2D_BackBuffer->Release();
 	pID3D11Texture2D_BackBuffer = NULL;
 
-	gpID3D11DeviceContext->OMSetRenderTargets(1, &gpID3D11RenderTargetView, NULL);
+	//depth stencil view
+	D3D11_TEXTURE2D_DESC textureDesc;
+	ZeroMemory(&textureDesc, sizeof(D3D11_TEXTURE2D_DESC));
+	textureDesc.Width = (UINT)width;
+	textureDesc.Height = (UINT)height;
+	textureDesc.ArraySize = 1;
+	textureDesc.MipLevels = 1;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = 0;
+
+	ID3D11Texture2D *pID3D11Texture2D_DepthBuffer;
+	gpID3D11Device->CreateTexture2D(&textureDesc, NULL, &pID3D11Texture2D_DepthBuffer);
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+	
+
+	hr = gpID3D11Device->CreateDepthStencilView(pID3D11Texture2D_DepthBuffer, &depthStencilViewDesc, &gpID3D11DepthStencilView);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateDepthStencilView() failed.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateDepthStencilView() succeeded.\n");
+		fclose(gpFile);
+	}
+	
+	pID3D11Texture2D_DepthBuffer->Release();
+	pID3D11Texture2D_DepthBuffer = NULL;
+		
+	gpID3D11DeviceContext->OMSetRenderTargets(1, &gpID3D11RenderTargetView, gpID3D11DepthStencilView);
 
 	//set viewport
 	D3D11_VIEWPORT d3dViewport;
@@ -957,6 +1040,8 @@ HRESULT resize(int width, int height)
 void display(void)
 {
 	gpID3D11DeviceContext->ClearRenderTargetView(gpID3D11RenderTargetView, gClearColor);
+
+	gpID3D11DeviceContext->ClearDepthStencilView(gpID3D11DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	//pyramid
 	//position
@@ -1050,6 +1135,12 @@ void update(void)
 
 void uninitialize(void)
 {
+	if (gpID3D11RasterizerState)
+	{
+		gpID3D11RasterizerState->Release();
+		gpID3D11RasterizerState = NULL;
+	}
+
 	if (gpID3D11Buffer_ConstantBuffer)
 	{
 		gpID3D11Buffer_ConstantBuffer->Release();
@@ -1096,6 +1187,12 @@ void uninitialize(void)
 	{
 		gpID3D11VertexShader->Release();
 		gpID3D11VertexShader = NULL;
+	}
+
+	if (gpID3D11DepthStencilView)
+	{
+		gpID3D11DepthStencilView->Release();
+		gpID3D11DepthStencilView = NULL;
 	}
 
 	if (gpID3D11RenderTargetView)

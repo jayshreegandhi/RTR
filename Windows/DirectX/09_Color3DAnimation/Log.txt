@@ -14,7 +14,9 @@ ID3D11Device::CreateBuffer() succeeded for vertex buffer color pyramid.
 ID3D11Device::CreateBuffer() succeeded for vertex buffer position cube.
 ID3D11Device::CreateBuffer() succeeded for vertex buffer color cube.
 ID3D11Device::CreateBuffer() succeeded for constant buffer.
+ID3D11Device::CreateRasterizerState succeeded for culling.
 ID3D11Device::CreateRenderTargetView() succeeded.
+ID3D11Device::CreateDepthStencilView() succeeded.
 resize() succeeded.
 initialize() succeeded.
 uninitialize() succeeded.
