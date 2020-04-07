@@ -100,7 +100,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	ghWnd = hwnd;
 
-	ToggleFullScreen();
 	ShowWindow(hwnd, iCmdShow);
 	SetForegroundWindow(hwnd);
 	SetFocus(hwnd);
@@ -204,6 +203,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case VK_ESCAPE:
 			DestroyWindow(hwnd);
 			break;
+
+		case 'f':
+		case 'F':
+			if (gbFullScreen == false)
+			{
+				ToggleFullScreen();
+				gbFullScreen = true;
+			}
+			else
+			{
+				ToggleFullScreen();
+				gbFullScreen = false;
+			}
+			break;
 		}
 		break;
 
@@ -243,7 +256,21 @@ void ToggleFullScreen(void)
 		}
 
 		ShowCursor(FALSE);
-		gbFullScreen = true;
+	
+	}
+	else
+	{
+		SetWindowLong(ghWnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+		SetWindowPlacement(ghWnd, &wpPrev);
+		SetWindowPos(ghWnd,
+			HWND_TOP,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+		ShowCursor(TRUE);
 	}
 }
 
@@ -624,7 +651,7 @@ HRESULT resize(int width, int height)
 		gpID3D11RenderTargetView = NULL;
 	}
 
-	gpIDXGISwapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	gpIDXGISwapChain->ResizeBuffers(1, (UINT)width, (UINT)height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
 	ID3D11Texture2D *pID3D11Texture2D_BackBuffer;
 	gpIDXGISwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pID3D11Texture2D_BackBuffer);
@@ -648,6 +675,11 @@ HRESULT resize(int width, int height)
 	pID3D11Texture2D_BackBuffer = NULL;
 
 	gpID3D11DeviceContext->OMSetRenderTargets(1, &gpID3D11RenderTargetView, NULL);
+
+	if (height == 0)
+	{
+		height = 1;
+	}
 
 	//set viewport
 	D3D11_VIEWPORT d3dViewport;

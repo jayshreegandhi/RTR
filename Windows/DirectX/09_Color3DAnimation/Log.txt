@@ -19,5 +19,8 @@ ID3D11Device::CreateRenderTargetView() succeeded.
 ID3D11Device::CreateDepthStencilView() succeeded.
 resize() succeeded.
 initialize() succeeded.
+ID3D11Device::CreateRenderTargetView() succeeded.
+ID3D11Device::CreateDepthStencilView() succeeded.
+resize() succeeded.
 uninitialize() succeeded.
 Log file closed successfully.

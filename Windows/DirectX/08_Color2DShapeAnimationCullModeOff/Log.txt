@@ -18,5 +18,7 @@ ID3D11Device::CreateRasterizerState succeeded for culling.
 ID3D11Device::CreateRenderTargetView() succeeded.
 resize() succeeded.
 initialize() succeeded.
+ID3D11Device::CreateRenderTargetView() succeeded.
+resize() succeeded.
 uninitialize() succeeded.
 Log file closed successfully.

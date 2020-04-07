@@ -110,7 +110,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	ghWnd = hwnd;
 
-	ToggleFullScreen();
 	ShowWindow(hwnd, iCmdShow);
 	SetForegroundWindow(hwnd);
 	SetFocus(hwnd);
@@ -214,6 +213,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case VK_ESCAPE:
 			DestroyWindow(hwnd);
 			break;
+
+		case 'f':
+		case 'F':
+			if (gbFullScreen == false)
+			{
+				ToggleFullScreen();
+				gbFullScreen = true;
+			}
+			else
+			{
+				ToggleFullScreen();
+				gbFullScreen = false;
+			}
+			break;
 		}
 		break;
 
@@ -253,7 +266,20 @@ void ToggleFullScreen(void)
 		}
 
 		ShowCursor(FALSE);
-		gbFullScreen = true;
+	}
+	else
+	{
+		SetWindowLong(ghWnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+		SetWindowPlacement(ghWnd, &wpPrev);
+		SetWindowPos(ghWnd,
+			HWND_TOP,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+		ShowCursor(TRUE);
 	}
 }
 

@@ -15,5 +15,7 @@ ID3D11Device::CreateBuffer() succeeded for constant buffer.
 ID3D11Device::CreateRenderTargetView() succeeded.
 resize() succeeded.
 initialize() succeeded.
+ID3D11Device::CreateRenderTargetView() succeeded.
+resize() succeeded.
 uninitialize() succeeded.
 Log file closed successfully.
