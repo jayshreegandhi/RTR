@@ -26,11 +26,11 @@ import java.nio.FloatBuffer;
 import android.opengl.Matrix;
 
 //texture
-import android.graphics.Bitmapfactory;
+import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
 import android.opengl.GLUtils;
 
-public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,OnGestureListener,OnDoubleTapListener{
+public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer, OnGestureListener, OnDoubleTapListener {
 
     private final Context context;
     private GestureDetector gestureDetector;
@@ -48,12 +48,9 @@ public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,On
 
     private float[] perspectiveProjectionMatrix = new float[16];
 
-    private float angleTriangle;
-    private float angleRectangle;
+    private int[] texture_smile = new int[1];
 
-    private int texture_smile = new int[1];
-
-    public GLESView(Context drawingContext){
+    public GLESView(Context drawingContext) {
         super(drawingContext);
         context = drawingContext;
 
@@ -61,77 +58,62 @@ public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,On
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
-        gestureDetector = new GestureDetector(drawingContext,this,null,false);
+        gestureDetector = new GestureDetector(drawingContext, this, null, false);
         gestureDetector.setOnDoubleTapListener(this);
     }
 
-    //Renderer's method
+    // Renderer's method
     @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config)
-    {
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         String version = gl.glGetString(GL10.GL_VERSION);
         String glslVersion = gl.glGetString(GLES32.GL_SHADING_LANGUAGE_VERSION);
-        //String vendor = gl.glGetString(GLES32.vendor);
-        //String renderer = gl.glGetString(GLES32.renderer);
+        // String vendor = gl.glGetString(GLES32.vendor);
+        // String renderer = gl.glGetString(GLES32.renderer);
 
         System.out.println("RTR: " + version);
         System.out.println("RTR: " + glslVersion);
-        //System.out.println("RTR: " + vendor);
-        //System.out.println("RTR: " + renderer);
+        // System.out.println("RTR: " + vendor);
+        // System.out.println("RTR: " + renderer);
 
         initialize();
     }
 
     @Override
-    public void onSurfaceChanged(GL10 unused, int width, int height)
-    {
+    public void onSurfaceChanged(GL10 unused, int width, int height) {
         resize(width, height);
     }
 
     @Override
-    public void onDrawFrame(GL10 unused)
-    {
+    public void onDrawFrame(GL10 unused) {
         update();
         display();
     }
 
-    //our callbacks/ custom methods
+    // our callbacks/ custom methods
 
-    private void initialize()
-    {
+    private void initialize() {
 
-        //vertex shader
+        // vertex shader
         vertexShaderObject = GLES32.glCreateShader(GLES32.GL_VERTEX_SHADER);
 
-        final String vertexShaderSourceCode = String.format(
-            "#version 320 es" +
-            "\n" +
-            "in vec4 vPosition;" +
-            "in vec4 vColor;" +
-            "uniform mat4 u_mvp_matrix;" +
-            "out vec4 out_color;" +
-            "void main(void)" +
-            "{" +
-            "   gl_Position = u_mvp_matrix * vPosition;" +
-            "   out_color = vColor;" +
-            "}");
+        final String vertexShaderSourceCode = String.format("#version 320 es" + "\n" + "in vec4 vPosition;"
+                + "in vec2 vTexCoord;" + "uniform mat4 u_mvp_matrix;" + "out vec2 out_texcoord;" + "void main(void)"
+                + "{" + "gl_Position = u_mvp_matrix * vPosition;" + "out_texcoord = vTexCoord;" + "}");
 
         GLES32.glShaderSource(vertexShaderObject, vertexShaderSourceCode);
 
         GLES32.glCompileShader(vertexShaderObject);
 
-        //compilation error checking
+        // compilation error checking
 
         int[] iShaderCompileStatus = new int[1];
         int[] iInfoLogLength = new int[1];
         String szInfoLog = null;
 
-        GLES32.glGetShaderiv(vertexShaderObject, GLES32.GL_COMPILE_STATUS,iShaderCompileStatus,0);
-        if(iShaderCompileStatus[0] == GLES32.GL_FALSE)
-        {
-            GLES32.glGetShaderiv(vertexShaderObject, GLES32.GL_INFO_LOG_LENGTH,iInfoLogLength,0);
-            if(iInfoLogLength[0] > 0)
-            {
+        GLES32.glGetShaderiv(vertexShaderObject, GLES32.GL_COMPILE_STATUS, iShaderCompileStatus, 0);
+        if (iShaderCompileStatus[0] == GLES32.GL_FALSE) {
+            GLES32.glGetShaderiv(vertexShaderObject, GLES32.GL_INFO_LOG_LENGTH, iInfoLogLength, 0);
+            if (iInfoLogLength[0] > 0) {
                 szInfoLog = GLES32.glGetShaderInfoLog(vertexShaderObject);
                 System.out.println("RTR: Vertex Shader Compilation log: " + szInfoLog);
 
@@ -140,36 +122,27 @@ public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,On
             }
         }
 
-        //fragment shader
+        // fragment shader
         fragmentShaderObject = GLES32.glCreateShader(GLES32.GL_FRAGMENT_SHADER);
 
-        final String fragmentShaderSourceCode = String.format(
-            "#version 320 es" +
-            "\n" +
-            "precision highp float;" +
-            "in vec4 out_color;" +
-            "out vec4 fragColor;" +
-            "void main(void)" +
-            "{" +
-            "   fragColor = out_color;" +
-            "}");
+        final String fragmentShaderSourceCode = String.format("#version 320 es" + "\n" + "precision highp float;"
+                + "in vec2 out_texcoord;" + "uniform sampler2D u_sampler;" + "out vec4 fragColor;" + "void main(void)"
+                + "{" + "   fragColor = texture(u_sampler, out_texcoord);" + "}");
 
         GLES32.glShaderSource(fragmentShaderObject, fragmentShaderSourceCode);
 
         GLES32.glCompileShader(fragmentShaderObject);
 
-        //compilation error checking
+        // compilation error checking
 
         iShaderCompileStatus[0] = 0;
         iInfoLogLength[0] = 0;
         szInfoLog = null;
 
-        GLES32.glGetShaderiv(fragmentShaderObject, GLES32.GL_COMPILE_STATUS,iShaderCompileStatus,0);
-        if(iShaderCompileStatus[0] == GLES32.GL_FALSE)
-        {
-            GLES32.glGetShaderiv(fragmentShaderObject, GLES32.GL_INFO_LOG_LENGTH,iInfoLogLength,0);
-            if(iInfoLogLength[0] > 0)
-            {
+        GLES32.glGetShaderiv(fragmentShaderObject, GLES32.GL_COMPILE_STATUS, iShaderCompileStatus, 0);
+        if (iShaderCompileStatus[0] == GLES32.GL_FALSE) {
+            GLES32.glGetShaderiv(fragmentShaderObject, GLES32.GL_INFO_LOG_LENGTH, iInfoLogLength, 0);
+            if (iInfoLogLength[0] > 0) {
                 szInfoLog = GLES32.glGetShaderInfoLog(fragmentShaderObject);
                 System.out.println("RTR: Fragment Shader Compilation log: " + szInfoLog);
 
@@ -178,34 +151,28 @@ public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,On
             }
         }
 
-        //Shader program
+        // Shader program
         shaderProgramObject = GLES32.glCreateProgram();
 
         GLES32.glAttachShader(shaderProgramObject, vertexShaderObject);
         GLES32.glAttachShader(shaderProgramObject, fragmentShaderObject);
 
-        //prelinking binding to attributes
-        GLES32.glBindAttribLocation(shaderProgramObject,
-                        GLESMacros.AMC_ATTRIBUTE_POSITION,
-                        "vPosition");
+        // prelinking binding to attributes
+        GLES32.glBindAttribLocation(shaderProgramObject, GLESMacros.AMC_ATTRIBUTE_POSITION, "vPosition");
 
-        GLES32.glBindAttribLocation(shaderProgramObject,
-                        GLESMacros.AMC_ATTRIBUTE_COLOR,
-                        "vColor");
+        GLES32.glBindAttribLocation(shaderProgramObject, GLESMacros.AMC_ATTRIBUTE_TEXCOORD0, "vTexCoord");
 
         GLES32.glLinkProgram(shaderProgramObject);
-        //compilation error checking
+        // compilation error checking
 
         int[] iShaderLinkStatus = new int[1];
         iInfoLogLength[0] = 0;
         szInfoLog = null;
 
-        GLES32.glGetProgramiv(shaderProgramObject, GLES32.GL_LINK_STATUS,iShaderLinkStatus,0);
-        if(iShaderLinkStatus[0] == GLES32.GL_FALSE)
-        {
-            GLES32.glGetProgramiv(shaderProgramObject, GLES32.GL_INFO_LOG_LENGTH,iInfoLogLength,0);
-            if(iInfoLogLength[0] > 0)
-            {
+        GLES32.glGetProgramiv(shaderProgramObject, GLES32.GL_LINK_STATUS, iShaderLinkStatus, 0);
+        if (iShaderLinkStatus[0] == GLES32.GL_FALSE) {
+            GLES32.glGetProgramiv(shaderProgramObject, GLES32.GL_INFO_LOG_LENGTH, iInfoLogLength, 0);
+            if (iInfoLogLength[0] > 0) {
                 szInfoLog = GLES32.glGetShaderInfoLog(shaderProgramObject);
                 System.out.println("RTR: Shader linking log: " + szInfoLog);
 
@@ -214,103 +181,21 @@ public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,On
             }
         }
 
-        //get uniform location
+        // get uniform location
         mvpUniform = GLES32.glGetUniformLocation(shaderProgramObject, "u_mvp_matrix");
+        samplerUniform = GLES32.glGetUniformLocation(shaderProgramObject, "u_sampler");
 
-        final float traingleVertices[] = new float[]{
-            0.0f,1.0f,0.0f,
-            -1.0f,-1.0f,0.0f,
-            1.0f,-1.0f,0.0f };
+        final float rectangleVertices[] = new float[] { 1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f,
+                -1.0f, 0.0f };
 
-        final float rectangleVertices[] = new float[]{
-            1.0f, 1.0f, 0.0f,
-            -1.0f,1.0f,0.0f,
-            -1.0f,-1.0f,0.0f,
-            1.0f,-1.0f,0.0f };
+        final float rectangleTexCoord[] = new float[] { 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f };
 
-	    final float traingleColor[] = new float[]{
-		    1.0f, 0.0f, 0.0f,
-		    0.0f, 1.0f, 0.0f,
-	    	0.0f, 0.0f, 1.0f };
-
-        final float rectangleColor[] = new float[]{
-            0.0f, 0.0f, 1.0f,
-            0.0f,0.0f,1.0f,
-            0.0f,0.0f,1.0f,
-            0.0f,0.0f,1.0f };
-
-
-        //create vao and bind vao
-        //triangle
-        GLES32.glGenVertexArrays(1, vao_triangle, 0);
-
-        GLES32.glBindVertexArray(vao_triangle[0]);
-
-        //create and bind vbo
-        //position
-        GLES32.glGenBuffers(1, vbo_position_triangle, 0);
-
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, vbo_position_triangle[0]);
-
-        ByteBuffer byteBufferPositionTriangle = ByteBuffer.allocateDirect(traingleVertices.length * 4);
-        byteBufferPositionTriangle.order(ByteOrder.nativeOrder());
-
-        FloatBuffer positionBufferTriangle = byteBufferPositionTriangle.asFloatBuffer();
-        positionBufferTriangle.put(traingleVertices);
-        positionBufferTriangle.position(0);
-
-        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER,
-                        traingleVertices.length * 4,
-                        positionBufferTriangle,
-                        GLES32.GL_STATIC_DRAW);
-
-        GLES32.glVertexAttribPointer(GLESMacros.AMC_ATTRIBUTE_POSITION,
-                        3,
-                        GLES32.GL_FLOAT,
-                        false,
-                        0,
-                        0);
-
-        GLES32.glEnableVertexAttribArray(GLESMacros.AMC_ATTRIBUTE_POSITION);
-
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, 0);
-
-        //color
-        GLES32.glGenBuffers(1, vbo_color_triangle, 0);
-
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, vbo_color_triangle[0]);
-
-        ByteBuffer byteBufferColorTriangle = ByteBuffer.allocateDirect(traingleColor.length * 4);
-        byteBufferColorTriangle.order(ByteOrder.nativeOrder());
-
-        FloatBuffer colorBufferTriangle = byteBufferColorTriangle.asFloatBuffer();
-        colorBufferTriangle.put(traingleColor);
-        colorBufferTriangle.position(0);
-
-        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER,
-                        traingleColor.length * 4,
-                        colorBufferTriangle,
-                        GLES32.GL_STATIC_DRAW);
-
-        GLES32.glVertexAttribPointer(GLESMacros.AMC_ATTRIBUTE_COLOR,
-                        3,
-                        GLES32.GL_FLOAT,
-                        false,
-                        0,
-                        0);
-
-        GLES32.glEnableVertexAttribArray(GLESMacros.AMC_ATTRIBUTE_COLOR);
-
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, 0);
-
-        GLES32.glBindVertexArray(0);
-
-        //rectangle
+        // rectangle
         GLES32.glGenVertexArrays(1, vao_rectangle, 0);
 
         GLES32.glBindVertexArray(vao_rectangle[0]);
 
-        //position
+        // position
         GLES32.glGenBuffers(1, vbo_position_rectangle, 0);
 
         GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, vbo_position_rectangle[0]);
@@ -322,226 +207,161 @@ public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,On
         positionBufferRectangle.put(rectangleVertices);
         positionBufferRectangle.position(0);
 
-        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER,
-                        rectangleVertices.length * 4,
-                        positionBufferRectangle,
-                        GLES32.GL_STATIC_DRAW);
+        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER, rectangleVertices.length * 4, positionBufferRectangle,
+                GLES32.GL_STATIC_DRAW);
 
-        GLES32.glVertexAttribPointer(GLESMacros.AMC_ATTRIBUTE_POSITION,
-                        3,
-                        GLES32.GL_FLOAT,
-                        false,
-                        0,
-                        0);
+        GLES32.glVertexAttribPointer(GLESMacros.AMC_ATTRIBUTE_POSITION, 3, GLES32.GL_FLOAT, false, 0, 0);
 
         GLES32.glEnableVertexAttribArray(GLESMacros.AMC_ATTRIBUTE_POSITION);
 
         GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, 0);
 
-        //color
-        GLES32.glGenBuffers(1, vbo_color_rectangle, 0);
+        // texture
+        GLES32.glGenBuffers(1, vbo_texture_rectangle, 0);
 
-        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, vbo_color_rectangle[0]);
+        GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, vbo_texture_rectangle[0]);
 
-        ByteBuffer byteBufferColorRectangle = ByteBuffer.allocateDirect(rectangleColor.length * 4);
-        byteBufferColorRectangle.order(ByteOrder.nativeOrder());
+        ByteBuffer byteBufferTextureRectangle = ByteBuffer.allocateDirect(rectangleTexCoord.length * 4);
+        byteBufferTextureRectangle.order(ByteOrder.nativeOrder());
 
-        FloatBuffer colorBufferRectangle = byteBufferColorRectangle.asFloatBuffer();
-        colorBufferRectangle.put(rectangleColor);
-        colorBufferRectangle.position(0);
+        FloatBuffer textureBufferRectangle = byteBufferTextureRectangle.asFloatBuffer();
+        textureBufferRectangle.put(rectangleTexCoord);
+        textureBufferRectangle.position(0);
 
-        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER,
-                        rectangleColor.length * 4,
-                        colorBufferRectangle,
-                        GLES32.GL_STATIC_DRAW);
+        GLES32.glBufferData(GLES32.GL_ARRAY_BUFFER, rectangleTexCoord.length * 4, textureBufferRectangle,
+                GLES32.GL_STATIC_DRAW);
 
-        GLES32.glVertexAttribPointer(GLESMacros.AMC_ATTRIBUTE_COLOR,
-                        3,
-                        GLES32.GL_FLOAT,
-                        false,
-                        0,
-                        0);
+        GLES32.glVertexAttribPointer(GLESMacros.AMC_ATTRIBUTE_TEXCOORD0, 2, GLES32.GL_FLOAT, false, 0, 0);
 
-        GLES32.glEnableVertexAttribArray(GLESMacros.AMC_ATTRIBUTE_COLOR);
+        GLES32.glEnableVertexAttribArray(GLESMacros.AMC_ATTRIBUTE_TEXCOORD0);
 
         GLES32.glBindBuffer(GLES32.GL_ARRAY_BUFFER, 0);
 
         GLES32.glBindVertexArray(0);
 
+        texture_smile[0] = loadTexture(R.raw.smile);
+
         GLES32.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         GLES32.glDisable(GLES32.GL_CULL_FACE);
 
-	    GLES32.glEnable(GLES32.GL_DEPTH_TEST);
-	    GLES32.glDepthFunc(GLES32.GL_LEQUAL);
+        GLES32.glEnable(GLES32.GL_DEPTH_TEST);
+        GLES32.glDepthFunc(GLES32.GL_LEQUAL);
 
-        Matrix.setIdentityM(perspectiveProjectionMatrix,0);
+        Matrix.setIdentityM(perspectiveProjectionMatrix, 0);
 
     }
 
+    private int loadTexture(int imageFileResourceID) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inScaled = false;
 
-    private void resize(int width, int height)
-    {
-        if(height < 0)
-        {
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), imageFileResourceID, options);
+
+        int[] texture = new int[1];
+        GLES32.glGenTextures(1, texture, 0);
+        GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, texture[0]);
+        GLES32.glPixelStorei(GLES32.GL_UNPACK_ALIGNMENT, 4);
+        GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MAG_FILTER, GLES32.GL_LINEAR);
+        GLES32.glTexParameteri(GLES32.GL_TEXTURE_2D, GLES32.GL_TEXTURE_MIN_FILTER, GLES32.GL_LINEAR_MIPMAP_LINEAR);
+
+        GLUtils.texImage2D(GLES32.GL_TEXTURE_2D, 0, bitmap, 0);
+
+        GLES32.glGenerateMipmap(GLES32.GL_TEXTURE_2D);
+        GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, 0);
+
+        return (texture[0]);
+    }
+
+    private void resize(int width, int height) {
+        if (height < 0) {
             height = 1;
         }
 
-        GLES32.glViewport(0,0,width,height);
-        Matrix.perspectiveM(perspectiveProjectionMatrix,
-                0,
-                45.0f,
-                width / height,
-                0.1f,
-                100.0f);
+        GLES32.glViewport(0, 0, width, height);
+        Matrix.perspectiveM(perspectiveProjectionMatrix, 0, 45.0f, width / height, 0.1f, 100.0f);
     }
 
-    private void display()
-    {
+    private void display() {
         GLES32.glClear(GLES32.GL_COLOR_BUFFER_BIT | GLES32.GL_DEPTH_BUFFER_BIT);
 
         GLES32.glUseProgram(shaderProgramObject);
 
         float[] modelViewMatrix = new float[16];
         float[] modelViewProjectionMatrix = new float[16];
-        float[] rotationMatrix = new float[16];
 
-        //triangle
-        //identity
-        Matrix.setIdentityM(modelViewMatrix,0);
-        Matrix.setIdentityM(modelViewProjectionMatrix,0);
-        Matrix.setIdentityM(rotationMatrix, 0);
+        // rectangle
+        // identity
+        Matrix.setIdentityM(modelViewMatrix, 0);
+        Matrix.setIdentityM(modelViewProjectionMatrix, 0);
 
-        //tranformation
-        Matrix.translateM(modelViewMatrix, 0,-1.5f, 0.0f, -6.0f);
-        Matrix.setRotateM(rotationMatrix, 0, angleTriangle, 0.0f, 1.0f, 0.0f);
-        Matrix.multiplyMM(modelViewMatrix, 0, modelViewMatrix, 0, rotationMatrix, 0);
+        // tranformation
+        Matrix.translateM(modelViewMatrix, 0, 0.0f, 0.0f, -5.0f);
 
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0,
-                            perspectiveProjectionMatrix, 0,
-                            modelViewMatrix, 0);
+        Matrix.multiplyMM(modelViewProjectionMatrix, 0, perspectiveProjectionMatrix, 0, modelViewMatrix, 0);
 
         GLES32.glUniformMatrix4fv(mvpUniform, 1, false, modelViewProjectionMatrix, 0);
 
-        GLES32.glBindVertexArray(vao_triangle[0]);
-        GLES32.glDrawArrays(GLES32.GL_TRIANGLES, 0, 3);
-        GLES32.glBindVertexArray(0);
-
-        //rectangle
-        //identity
-        Matrix.setIdentityM(modelViewMatrix,0);
-        Matrix.setIdentityM(modelViewProjectionMatrix,0);
-        Matrix.setIdentityM(rotationMatrix, 0);
-
-        //tranformation
-        Matrix.translateM(modelViewMatrix, 0, 1.5f, 0.0f, -6.0f);
-        Matrix.setRotateM(rotationMatrix, 0, angleRectangle, 1.0f, 0.0f, 0.0f);
-        Matrix.multiplyMM(modelViewMatrix, 0, modelViewMatrix, 0, rotationMatrix, 0);
-
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0,
-                            perspectiveProjectionMatrix, 0,
-                            modelViewMatrix, 0);
-
-        GLES32.glUniformMatrix4fv(mvpUniform, 1, false, modelViewProjectionMatrix, 0);
+        GLES32.glActiveTexture(GLES32.GL_TEXTURE0);
+        GLES32.glBindTexture(GLES32.GL_TEXTURE_2D, texture_smile[0]);
+        GLES32.glUniform1i(samplerUniform, 0);
 
         GLES32.glBindVertexArray(vao_rectangle[0]);
         GLES32.glDrawArrays(GLES32.GL_TRIANGLE_FAN, 0, 4);
         GLES32.glBindVertexArray(0);
 
-
         GLES32.glUseProgram(0);
         requestRender();
     }
 
-    private void update()
-    {
-        angleTriangle = angleTriangle + 1.0f;
-        if (angleTriangle >= 360.0f)
-        {
-            angleTriangle = 0.0f;
-        }
+    private void update() {
 
-        angleRectangle = angleRectangle - 1.0f;
-
-        if (angleRectangle <= -360.0f)
-        {
-            angleRectangle = 0.0f;
-        }
     }
 
-    private void uninitialize()
-    {
-        if (vbo_color_rectangle[0] != 0)
-        {
-            GLES32.glDeleteBuffers(1, vbo_color_rectangle, 0);
-            vbo_color_rectangle[0] = 0;
+    private void uninitialize() {
+        if (texture_smile[0] != 0) {
+            GLES32.glDeleteTextures(1, texture_smile, 0);
+            texture_smile[0] = 0;
         }
 
-        if (vbo_position_rectangle[0] != 0)
-        {
+        if (vbo_texture_rectangle[0] != 0) {
+            GLES32.glDeleteBuffers(1, vbo_texture_rectangle, 0);
+            vbo_texture_rectangle[0] = 0;
+        }
+
+        if (vbo_position_rectangle[0] != 0) {
             GLES32.glDeleteBuffers(1, vbo_position_rectangle, 0);
             vbo_position_rectangle[0] = 0;
         }
 
-        if (vao_rectangle[0] != 0)
-        {
+        if (vao_rectangle[0] != 0) {
             GLES32.glDeleteVertexArrays(1, vao_rectangle, 0);
             vao_rectangle[0] = 0;
         }
 
-        if (vbo_color_triangle[0] != 0)
-        {
-            GLES32.glDeleteBuffers(1, vbo_color_triangle, 0);
-            vbo_color_triangle[0] = 0;
-        }
-
-        if (vbo_position_triangle[0] != 0)
-        {
-            GLES32.glDeleteBuffers(1, vbo_position_triangle, 0);
-            vbo_position_triangle[0] = 0;
-        }
-
-        if (vao_triangle[0] != 0)
-        {
-            GLES32.glDeleteVertexArrays(1, vao_triangle, 0);
-            vao_triangle[0] = 0;
-        }
-
-        if (shaderProgramObject != 0)
-        {
+        if (shaderProgramObject != 0) {
             int[] shaderCount = new int[1];
             int shaderNumber;
 
             GLES32.glUseProgram(shaderProgramObject);
 
-            //ask the program how many shaders are attached to you?
-            GLES32.glGetProgramiv(shaderProgramObject,
-                GLES32.GL_ATTACHED_SHADERS,
-                shaderCount,
-                0);
+            // ask the program how many shaders are attached to you?
+            GLES32.glGetProgramiv(shaderProgramObject, GLES32.GL_ATTACHED_SHADERS, shaderCount, 0);
 
             int[] shaders = new int[shaderCount[0]];
 
-            if (shaders[0] != 0)
-            {
-                //get shaders
-                GLES32.glGetAttachedShaders(shaderProgramObject,
-                    shaderCount[0],
-                    shaderCount,
-                    0,
-                    shaders,
-                    0);
+            if (shaders[0] != 0) {
+                // get shaders
+                GLES32.glGetAttachedShaders(shaderProgramObject, shaderCount[0], shaderCount, 0, shaders, 0);
 
-                for (shaderNumber = 0; shaderNumber < shaderCount[0]; shaderNumber++)
-                {
-                    //detach
-                    GLES32.glDetachShader(shaderProgramObject,
-                        shaders[shaderNumber]);
+                for (shaderNumber = 0; shaderNumber < shaderCount[0]; shaderNumber++) {
+                    // detach
+                    GLES32.glDetachShader(shaderProgramObject, shaders[shaderNumber]);
 
-                    //delete
+                    // delete
                     GLES32.glDeleteShader(shaders[shaderNumber]);
 
-                    //explicit 0
+                    // explicit 0
                     shaders[shaderNumber] = 0;
                 }
             }
@@ -554,59 +374,59 @@ public class GLESView extends GLSurfaceView implements GLSurfaceView.Renderer,On
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event){
+    public boolean onTouchEvent(MotionEvent event) {
 
         int eventaction = event.getAction();
-        if(!gestureDetector.onTouchEvent(event)){
+        if (!gestureDetector.onTouchEvent(event)) {
             super.onTouchEvent(event);
         }
 
-        return(true);
+        return (true);
     }
 
     @Override
-    public boolean onDoubleTap(MotionEvent e){
-        return(true);
+    public boolean onDoubleTap(MotionEvent e) {
+        return (true);
     }
 
     @Override
-    public boolean onDoubleTapEvent(MotionEvent e){
-        return(true);
+    public boolean onDoubleTapEvent(MotionEvent e) {
+        return (true);
     }
 
     @Override
-    public boolean onSingleTapConfirmed(MotionEvent e){
-        return(true);
+    public boolean onSingleTapConfirmed(MotionEvent e) {
+        return (true);
     }
 
     @Override
-    public boolean onDown(MotionEvent e){
-        return(true);
+    public boolean onDown(MotionEvent e) {
+        return (true);
     }
 
     @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY){
-        return(true);
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        return (true);
     }
 
     @Override
-    public void onLongPress(MotionEvent e){
+    public void onLongPress(MotionEvent e) {
     }
 
     @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2,float distanceX, float distanceY){
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         uninitialize();
         System.exit(0);
-        return(true);
+        return (true);
     }
 
     @Override
-    public void onShowPress(MotionEvent e){
+    public void onShowPress(MotionEvent e) {
 
     }
 
     @Override
-    public boolean onSingleTapUp(MotionEvent e){
-        return(true);
+    public boolean onSingleTapUp(MotionEvent e) {
+        return (true);
     }
 }

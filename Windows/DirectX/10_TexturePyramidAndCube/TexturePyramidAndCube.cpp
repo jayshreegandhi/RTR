@@ -1,15 +1,15 @@
-#include<windows.h>
-#include<stdio.h>
+#include <windows.h>
+#include <stdio.h>
 
-#include<d3d11.h>
-#include<d3dcompiler.h>
+#include <d3d11.h>
+#include <d3dcompiler.h>
 
 #pragma warning(disable : 4838)
-#include"XNAMath/xnamath.h"
+#include "XNAMath/xnamath.h"
 
-#include"WICTextureLoader.h"
+#include "WICTextureLoader.h"
 
-#pragma comment(lib,"d3d11.lib")
+#pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "D3dcompiler.lib")
 #pragma comment(lib, "DirectXTK.lib")
 #define WIN_WIDTH 800
@@ -25,7 +25,7 @@ void uninitialize(void);
 HRESULT LoadD3DTexture(const wchar_t *, ID3D11ShaderResourceView **);
 
 DWORD dwStyle;
-WINDOWPLACEMENT wpPrev = { sizeof(WINDOWPLACEMENT) };
+WINDOWPLACEMENT wpPrev = {sizeof(WINDOWPLACEMENT)};
 HWND ghWnd = NULL;
 
 bool gbFullScreen = false;
@@ -70,7 +70,6 @@ struct CBUFFER
 
 XMMATRIX gPerspectiveProjectionMatrix;
 
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int iCmdShow)
 {
 	WNDCLASSEX wndclass;
@@ -78,7 +77,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	MSG msg;
 	TCHAR szAppName[] = TEXT("Direct3D11");
 	bool bDone = false;
-
 
 	if (fopen_s(&gpFile, gszLogFileName, "w") != 0)
 	{
@@ -107,17 +105,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	RegisterClassEx(&wndclass);
 
 	hwnd = CreateWindowEx(WS_EX_APPWINDOW,
-		szAppName,
-		TEXT("D3D11 Window - Jayshree"),
-		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
-		100,
-		100,
-		WIN_WIDTH,
-		WIN_HEIGHT,
-		NULL,
-		NULL,
-		hInstance,
-		NULL);
+						  szAppName,
+						  TEXT("D3D11 Window - Jayshree"),
+						  WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE,
+						  100,
+						  100,
+						  WIN_WIDTH,
+						  WIN_HEIGHT,
+						  NULL,
+						  NULL,
+						  hInstance,
+						  NULL);
 
 	ghWnd = hwnd;
 
@@ -173,7 +171,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	//clean up
 	uninitialize();
 
-	return((int)msg.wParam);
+	return ((int)msg.wParam);
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
@@ -199,7 +197,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				fopen_s(&gpFile, gszLogFileName, "a+");
 				fprintf_s(gpFile, "resize() failed.\n");
 				fclose(gpFile);
-				return(hr);
+				return (hr);
 			}
 			else
 			{
@@ -211,7 +209,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_ERASEBKGND:
-		return(0);
+		return (0);
 		break;
 
 	case WM_CLOSE:
@@ -238,7 +236,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				gbFullScreen = false;
 			}
 			break;
-
 		}
 		break;
 
@@ -248,7 +245,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-	return(DefWindowProc(hwnd, iMsg, wParam, lParam));
+	return (DefWindowProc(hwnd, iMsg, wParam, lParam));
 }
 
 void ToggleFullScreen(void)
@@ -261,19 +258,19 @@ void ToggleFullScreen(void)
 
 		if (dwStyle & WS_OVERLAPPEDWINDOW)
 		{
-			mi = { sizeof(MONITORINFO) };
+			mi = {sizeof(MONITORINFO)};
 
 			if (GetWindowPlacement(ghWnd, &wpPrev) && GetMonitorInfo(MonitorFromWindow(ghWnd, MONITORINFOF_PRIMARY), &mi))
 			{
 				SetWindowLong(ghWnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
 
 				SetWindowPos(ghWnd,
-					HWND_TOP,
-					mi.rcMonitor.left,
-					mi.rcMonitor.top,
-					mi.rcMonitor.right - mi.rcMonitor.left,
-					mi.rcMonitor.bottom - mi.rcMonitor.top,
-					SWP_NOZORDER | SWP_FRAMECHANGED);
+							 HWND_TOP,
+							 mi.rcMonitor.left,
+							 mi.rcMonitor.top,
+							 mi.rcMonitor.right - mi.rcMonitor.left,
+							 mi.rcMonitor.bottom - mi.rcMonitor.top,
+							 SWP_NOZORDER | SWP_FRAMECHANGED);
 			}
 		}
 
@@ -284,12 +281,12 @@ void ToggleFullScreen(void)
 		SetWindowLong(ghWnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
 		SetWindowPlacement(ghWnd, &wpPrev);
 		SetWindowPos(ghWnd,
-			HWND_TOP,
-			0,
-			0,
-			0,
-			0,
-			SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
+					 HWND_TOP,
+					 0,
+					 0,
+					 0,
+					 0,
+					 SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER | SWP_NOZORDER | SWP_FRAMECHANGED);
 
 		ShowCursor(TRUE);
 	}
@@ -300,7 +297,7 @@ HRESULT initialize(void)
 
 	HRESULT hr;
 	D3D_DRIVER_TYPE d3dDriverType;
-	D3D_DRIVER_TYPE d3dDriverTypes[] = { D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_WARP, D3D_DRIVER_TYPE_REFERENCE };
+	D3D_DRIVER_TYPE d3dDriverTypes[] = {D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_WARP, D3D_DRIVER_TYPE_REFERENCE};
 	D3D_FEATURE_LEVEL d3dFeatureLevel_required = D3D_FEATURE_LEVEL_11_0;
 	D3D_FEATURE_LEVEL d3dFeatureLevel_acquried = D3D_FEATURE_LEVEL_10_0;
 
@@ -325,23 +322,22 @@ HRESULT initialize(void)
 	dxgiSwapChainDesc.SampleDesc.Quality = 0;
 	dxgiSwapChainDesc.Windowed = TRUE;
 
-
 	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 	{
 		d3dDriverType = d3dDriverTypes[driverTypeIndex];
 		hr = D3D11CreateDeviceAndSwapChain(
-			NULL,						//Adapter
-			d3dDriverType,				//Driver Type
-			NULL,						//Software
-			createDeviceFlags,			//Flags
-			&d3dFeatureLevel_required,	//Feature levels
-			numFeatureLevels,			//Num feature levels
-			D3D11_SDK_VERSION,			//SDK Version
-			&dxgiSwapChainDesc,			//Swap Chain desc
-			&gpIDXGISwapChain,			//Swap Chain
-			&gpID3D11Device,			//Device
-			&d3dFeatureLevel_acquried,	//Feature level
-			&gpID3D11DeviceContext		//Device Context
+			NULL,					   //Adapter
+			d3dDriverType,			   //Driver Type
+			NULL,					   //Software
+			createDeviceFlags,		   //Flags
+			&d3dFeatureLevel_required, //Feature levels
+			numFeatureLevels,		   //Num feature levels
+			D3D11_SDK_VERSION,		   //SDK Version
+			&dxgiSwapChainDesc,		   //Swap Chain desc
+			&gpIDXGISwapChain,		   //Swap Chain
+			&gpID3D11Device,		   //Device
+			&d3dFeatureLevel_acquried, //Feature level
+			&gpID3D11DeviceContext	   //Device Context
 		);
 
 		if (SUCCEEDED(hr))
@@ -355,7 +351,7 @@ HRESULT initialize(void)
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "D3D11CreateDeviceAndSwapChain() failed.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -405,48 +401,48 @@ HRESULT initialize(void)
 
 	//**********************VERTEX SHADER**********************************************
 	const char *vertexShaderSourceCode =
-		"cbuffer ConstantBuffer" \
-		"{" \
-		"float4x4 worldViewProjectionMatrix;" \
-		"}" \
-		"struct vertex_output" \
+		"cbuffer ConstantBuffer"
 		"{"
-		"float4 position : SV_POSITION;" \
-		"float2 texcoord : TEXCOORD;" \
-		"};" \
-		"vertex_output main(float4 pos : POSITION, float2 texcoord : TEXCOORD)" \
-		"{" \
-		"	vertex_output output;" \
-		"	output.position = mul(worldViewProjectionMatrix, pos);" \
-		"	output.texcoord = texcoord;" \
-		"	return(output);" \
+		"float4x4 worldViewProjectionMatrix;"
+		"}"
+		"struct vertex_output"
+		"{"
+		"float4 position : SV_POSITION;"
+		"float2 texcoord : TEXCOORD;"
+		"};"
+		"vertex_output main(float4 pos : POSITION, float2 texcoord : TEXCOORD)"
+		"{"
+		"	vertex_output output;"
+		"	output.position = mul(worldViewProjectionMatrix, pos);"
+		"	output.texcoord = texcoord;"
+		"	return(output);"
 		"}";
 
 	ID3DBlob *pID3DBlob_VertexShaderCode = NULL;
 	ID3DBlob *pID3DBlob_Error = NULL;
 
 	hr = D3DCompile(vertexShaderSourceCode,
-		lstrlenA(vertexShaderSourceCode) + 1,
-		"VS",
-		NULL,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		"main",
-		"vs_5_0",
-		0,
-		0,
-		&pID3DBlob_VertexShaderCode,
-		&pID3DBlob_Error);
+					lstrlenA(vertexShaderSourceCode) + 1,
+					"VS",
+					NULL,
+					D3D_COMPILE_STANDARD_FILE_INCLUDE,
+					"main",
+					"vs_5_0",
+					0,
+					0,
+					&pID3DBlob_VertexShaderCode,
+					&pID3DBlob_Error);
 
 	if (FAILED(hr))
 	{
 		if (pID3DBlob_Error != NULL)
 		{
 			fopen_s(&gpFile, gszLogFileName, "a+");
-			fprintf_s(gpFile, "D3DCompile() failed for vertex shader : %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fprintf_s(gpFile, "D3DCompile() failed for vertex shader : %s.\n", (char *)pID3DBlob_Error->GetBufferPointer());
 			fclose(gpFile);
 			pID3DBlob_Error->Release();
 			pID3DBlob_Error = NULL;
-			return(hr);
+			return (hr);
 		}
 	}
 	else
@@ -457,15 +453,15 @@ HRESULT initialize(void)
 	}
 
 	hr = gpID3D11Device->CreateVertexShader(pID3DBlob_VertexShaderCode->GetBufferPointer(),
-		pID3DBlob_VertexShaderCode->GetBufferSize(),
-		NULL,
-		&gpID3D11VertexShader);
+											pID3DBlob_VertexShaderCode->GetBufferSize(),
+											NULL,
+											&gpID3D11VertexShader);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() failed.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -479,39 +475,39 @@ HRESULT initialize(void)
 
 	//*************************PIXEL SHADER************************************
 	const char *pixelShaderSourceCode =
-		"Texture2D myTexture2D;" \
-		"SamplerState mySamplerState;" \
-		"float4 main(float4 pos : SV_POSITION, float2 texcoord : TEXCOORD) : SV_TARGET" \
-		"{" \
-		"	float4 color = myTexture2D.Sample(mySamplerState, texcoord);" \
-		"	return(color);" \
+		"Texture2D myTexture2D;"
+		"SamplerState mySamplerState;"
+		"float4 main(float4 pos : SV_POSITION, float2 texcoord : TEXCOORD) : SV_TARGET"
+		"{"
+		"	float4 color = myTexture2D.Sample(mySamplerState, texcoord);"
+		"	return(color);"
 		"}";
 
 	ID3DBlob *pID3DBlob_PixelShaderCode = NULL;
 	pID3DBlob_Error = NULL;
 
 	hr = D3DCompile(pixelShaderSourceCode,
-		lstrlenA(pixelShaderSourceCode) + 1,
-		"PS",
-		NULL,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		"main",
-		"ps_5_0",
-		0,
-		0,
-		&pID3DBlob_PixelShaderCode,
-		&pID3DBlob_Error);
+					lstrlenA(pixelShaderSourceCode) + 1,
+					"PS",
+					NULL,
+					D3D_COMPILE_STANDARD_FILE_INCLUDE,
+					"main",
+					"ps_5_0",
+					0,
+					0,
+					&pID3DBlob_PixelShaderCode,
+					&pID3DBlob_Error);
 
 	if (FAILED(hr))
 	{
 		if (pID3DBlob_Error != NULL)
 		{
 			fopen_s(&gpFile, gszLogFileName, "a+");
-			fprintf_s(gpFile, "D3DCompile() failed for pixel shader : %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fprintf_s(gpFile, "D3DCompile() failed for pixel shader : %s.\n", (char *)pID3DBlob_Error->GetBufferPointer());
 			fclose(gpFile);
 			pID3DBlob_Error->Release();
 			pID3DBlob_Error = NULL;
-			return(hr);
+			return (hr);
 		}
 	}
 	else
@@ -522,15 +518,15 @@ HRESULT initialize(void)
 	}
 
 	hr = gpID3D11Device->CreatePixelShader(pID3DBlob_PixelShaderCode->GetBufferPointer(),
-		pID3DBlob_PixelShaderCode->GetBufferSize(),
-		NULL,
-		&gpID3D11PixelShader);
+										   pID3DBlob_PixelShaderCode->GetBufferSize(),
+										   NULL,
+										   &gpID3D11PixelShader);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() failed.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -563,16 +559,16 @@ HRESULT initialize(void)
 	inputElementDesc[1].InstanceDataStepRate = 0;
 
 	hr = gpID3D11Device->CreateInputLayout(inputElementDesc,
-		_ARRAYSIZE(inputElementDesc),
-		pID3DBlob_VertexShaderCode->GetBufferPointer(),
-		pID3DBlob_VertexShaderCode->GetBufferSize(),
-		&gpID3D11InputLayout);
+										   _ARRAYSIZE(inputElementDesc),
+										   pID3DBlob_VertexShaderCode->GetBufferPointer(),
+										   pID3DBlob_VertexShaderCode->GetBufferSize(),
+										   &gpID3D11InputLayout);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() failed.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -591,177 +587,199 @@ HRESULT initialize(void)
 	pID3DBlob_PixelShaderCode = NULL;
 
 	float pyramidVertices[] =
-	{
-		//front
-		0.0f, 1.0f, 0.0f, //top
-		-1.0f, -1.0f, 1.0f, // left
-		1.0f, -1.0f, 1.0f, // right
+		{
+			//front
+			0.0f,
+			1.0f,
+			0.0f, //top
+			-1.0f,
+			-1.0f,
+			1.0f, // left
+			1.0f,
+			-1.0f,
+			1.0f, // right
 
-		//right
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
+			//right
+			0.0f,
+			1.0f,
+			0.0f,
+			1.0f,
+			-1.0f,
+			1.0f,
+			1.0f,
+			-1.0f,
+			-1.0f,
 
-		//back
-		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
+			//back
+			0.0f,
+			1.0f,
+			0.0f,
+			1.0f,
+			-1.0f,
+			-1.0f,
+			-1.0f,
+			-1.0f,
+			-1.0f,
 
-		//left
-		0.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-	};
+			//left
+			0.0f,
+			1.0f,
+			0.0f,
+			-1.0f,
+			-1.0f,
+			-1.0f,
+			-1.0f,
+			-1.0f,
+			1.0f,
+		};
 
 	float pyramidTexcoord[] =
-	{
-		//front
-		0.5f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f,
+		{
+			//front
+			0.5f, 1.0f,
+			0.0f, 0.0f,
+			1.0f, 0.0f,
 
-		//right
-		0.5f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
+			//right
+			0.5f, 1.0f,
+			1.0f, 0.0f,
+			0.0f, 0.0f,
 
-		//back
-		0.5f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
+			//back
+			0.5f, 1.0f,
+			1.0f, 0.0f,
+			0.0f, 0.0f,
 
-		//left
-		0.5f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f
-	};
+			//left
+			0.5f, 1.0f,
+			0.0f, 0.0f,
+			1.0f, 0.0f};
 
 	float cubeVertices[] =
-	{
-		//top
-		//triangle one
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		//triangle two
-		-1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,
+		{
+			//top
+			//triangle one
+			-1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f,
+			-1.0f, 1.0f, -1.0f,
+			//triangle two
+			-1.0f, 1.0f, -1.0f,
+			1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, -1.0f,
 
-		//bottom
-		//triangle one
-		1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,
-		//triangle two
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
+			//bottom
+			//triangle one
+			1.0f, -1.0f, -1.0f,
+			1.0f, -1.0f, 1.0f,
+			-1.0f, -1.0f, -1.0f,
+			//triangle two
+			-1.0f, -1.0f, -1.0f,
+			1.0f, -1.0f, 1.0f,
+			-1.0f, -1.0f, 1.0f,
 
-		//front
-		//triangle one
-		-1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		//triangle two
-		-1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
+			//front
+			//triangle one
+			-1.0f, 1.0f, -1.0f,
+			1.0f, 1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
+			//triangle two
+			-1.0f, -1.0f, -1.0f,
+			1.0f, 1.0f, -1.0f,
+			1.0f, -1.0f, -1.0f,
 
-		//back
-		//triangle one
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-		//triangle two
-		-1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
+			//back
+			//triangle one
+			1.0f, -1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f,
+			-1.0f, -1.0f, 1.0f,
+			//triangle two
+			-1.0f, -1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f,
+			-1.0f, 1.0f, 1.0f,
 
-		//left
-		//triangle one
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, +1.0f,
-		//triangle two
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
+			//left
+			//triangle one
+			-1.0f, 1.0f, 1.0f,
+			-1.0f, 1.0f, -1.0f,
+			-1.0f, -1.0f, +1.0f,
+			//triangle two
+			-1.0f, -1.0f, 1.0f,
+			-1.0f, 1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
 
-		//right
-		//triangle one
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		//triangle two
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f
+			//right
+			//triangle one
+			1.0f, -1.0f, -1.0f,
+			1.0f, 1.0f, -1.0f,
+			1.0f, -1.0f, 1.0f,
+			//triangle two
+			1.0f, -1.0f, 1.0f,
+			1.0f, 1.0f, -1.0f,
+			1.0f, 1.0f, 1.0f
 
-	};
+		};
 
 	float cubeTexcoord[] =
-	{
-		//top
-		//triangle one
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		//triangle two
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
+		{
+			//top
+			//triangle one
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 0.0f,
+			//triangle two
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f,
 
-		//bottom
-		//triangle one
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		//triangle two
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
+			//bottom
+			//triangle one
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 0.0f,
+			//triangle two
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f,
 
-		//front
-		//triangle one
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		//triangle two
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
+			//front
+			//triangle one
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 0.0f,
+			//triangle two
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f,
 
-		//back
-		//triangle one
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		//triangle two
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
+			//back
+			//triangle one
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 0.0f,
+			//triangle two
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f,
 
-		//left
-		//triangle one
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		//triangle two
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
+			//left
+			//triangle one
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 0.0f,
+			//triangle two
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f,
 
-		//right
-		//triangle one
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		//triangle two
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f
-	};
+			//right
+			//triangle one
+			0.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 0.0f,
+			//triangle two
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			1.0f, 1.0f};
 
 	//create vertex buffer
 	//pyramid
@@ -774,14 +792,14 @@ HRESULT initialize(void)
 	bufferDesc_VertexBuffer_Poition_Pyramid.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
 	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Poition_Pyramid,
-		NULL,
-		&gpID3D11Buffer_VertexBuffer_Position_Pyramid);
+									  NULL,
+									  &gpID3D11Buffer_VertexBuffer_Position_Pyramid);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer position pyramid.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -806,14 +824,14 @@ HRESULT initialize(void)
 	bufferDesc_VertexBuffer_Texture_Pyramid.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
 	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Texture_Pyramid,
-		NULL,
-		&gpID3D11Buffer_VertexBuffer_Texture_Pyramid);
+									  NULL,
+									  &gpID3D11Buffer_VertexBuffer_Texture_Pyramid);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer texture pyramid.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -829,7 +847,6 @@ HRESULT initialize(void)
 	memcpy(mappedSubresource.pData, pyramidTexcoord, sizeof(pyramidTexcoord));
 	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_Texture_Pyramid, NULL);
 
-
 	//cube
 	//position
 	D3D11_BUFFER_DESC bufferDesc_VertexBuffer_Poition_Cube;
@@ -840,14 +857,14 @@ HRESULT initialize(void)
 	bufferDesc_VertexBuffer_Poition_Cube.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
 	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Poition_Cube,
-		NULL,
-		&gpID3D11Buffer_VertexBuffer_Position_Cube);
+									  NULL,
+									  &gpID3D11Buffer_VertexBuffer_Position_Cube);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer position cube.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -871,14 +888,14 @@ HRESULT initialize(void)
 	bufferDesc_VertexBuffer_Texture_Cube.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
 	hr = gpID3D11Device->CreateBuffer(&bufferDesc_VertexBuffer_Texture_Cube,
-		NULL,
-		&gpID3D11Buffer_VertexBuffer_Texture_Cube);
+									  NULL,
+									  &gpID3D11Buffer_VertexBuffer_Texture_Cube);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for vertex buffer texture cube.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -901,14 +918,14 @@ HRESULT initialize(void)
 	bufferDesc_ConstantBuffer.ByteWidth = sizeof(CBUFFER);
 	bufferDesc_ConstantBuffer.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	hr = gpID3D11Device->CreateBuffer(&bufferDesc_ConstantBuffer,
-		NULL,
-		&gpID3D11Buffer_ConstantBuffer);
+									  NULL,
+									  &gpID3D11Buffer_ConstantBuffer);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateBuffer() failed for constant buffer.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -940,7 +957,7 @@ HRESULT initialize(void)
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateRasterizerState() failed for culling.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -954,12 +971,12 @@ HRESULT initialize(void)
 	//load textures
 	//pyramid
 	hr = LoadD3DTexture(L"Stone.bmp", &gpID3D11ShaderResourceView_Texture_Pyramid);
-	if(FAILED(hr))
+	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::LoadD3DTexture() failed for pyramid texture.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -981,7 +998,7 @@ HRESULT initialize(void)
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateSamplerState() failed for pyramid texture.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -997,7 +1014,7 @@ HRESULT initialize(void)
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::LoadD3DTexture() failed for cube texture.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -1018,7 +1035,7 @@ HRESULT initialize(void)
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateSamplerState() failed for cube texture.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -1041,7 +1058,7 @@ HRESULT initialize(void)
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "resize() failed.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -1050,7 +1067,7 @@ HRESULT initialize(void)
 		fclose(gpFile);
 	}
 
-	return(S_OK);
+	return (S_OK);
 }
 
 HRESULT LoadD3DTexture(const wchar_t *textureFileName, ID3D11ShaderResourceView **ppID3D11ShaderResourceView)
@@ -1063,7 +1080,7 @@ HRESULT LoadD3DTexture(const wchar_t *textureFileName, ID3D11ShaderResourceView 
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "CreateWICTextureFromFile() failed for texture resource.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -1072,9 +1089,8 @@ HRESULT LoadD3DTexture(const wchar_t *textureFileName, ID3D11ShaderResourceView 
 		fclose(gpFile);
 	}
 
-	return(hr);
+	return (hr);
 }
-
 
 HRESULT resize(int width, int height)
 {
@@ -1095,7 +1111,7 @@ HRESULT resize(int width, int height)
 	gpIDXGISwapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
 	ID3D11Texture2D *pID3D11Texture2D_BackBuffer;
-	gpIDXGISwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pID3D11Texture2D_BackBuffer);
+	gpIDXGISwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *)&pID3D11Texture2D_BackBuffer);
 
 	hr = gpID3D11Device->CreateRenderTargetView(pID3D11Texture2D_BackBuffer, NULL, &gpID3D11RenderTargetView);
 	if (FAILED(hr))
@@ -1103,7 +1119,7 @@ HRESULT resize(int width, int height)
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateRenderTargetView() failed.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -1138,14 +1154,13 @@ HRESULT resize(int width, int height)
 	depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 
-
 	hr = gpID3D11Device->CreateDepthStencilView(pID3D11Texture2D_DepthBuffer, &depthStencilViewDesc, &gpID3D11DepthStencilView);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
 		fprintf_s(gpFile, "ID3D11Device::CreateDepthStencilView() failed.\n");
 		fclose(gpFile);
-		return(hr);
+		return (hr);
 	}
 	else
 	{
@@ -1171,7 +1186,7 @@ HRESULT resize(int width, int height)
 
 	gPerspectiveProjectionMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-	return(hr);
+	return (hr);
 }
 
 void display(void)
@@ -1208,7 +1223,7 @@ void display(void)
 	CBUFFER constantBuffer;
 	constantBuffer.WorldViewProjectionMatrix = wvpMatrix;
 	gpID3D11DeviceContext->UpdateSubresource(gpID3D11Buffer_ConstantBuffer, 0, NULL, &constantBuffer, 0, 0);
-	gpID3D11DeviceContext->Draw(12,0);
+	gpID3D11DeviceContext->Draw(12, 0);
 
 	//cube
 	//position
@@ -1221,7 +1236,6 @@ void display(void)
 	offset = 0;
 	gpID3D11DeviceContext->IASetVertexBuffers(1, 1, &gpID3D11Buffer_VertexBuffer_Texture_Cube, &stride, &offset);
 
-
 	gpID3D11DeviceContext->PSSetShaderResources(0, 1, &gpID3D11ShaderResourceView_Texture_Cube);
 	gpID3D11DeviceContext->PSSetSamplers(0, 1, &gpID3D11SamplerState_Texture_Cube);
 
@@ -1231,7 +1245,6 @@ void display(void)
 	viewMatrix = XMMatrixIdentity();
 	translationMatrix = XMMatrixIdentity();
 	rotationMatrix = XMMatrixIdentity();
-
 
 	translationMatrix = XMMatrixTranslation(1.5f, 0.0f, 7.0f);
 
@@ -1272,9 +1285,7 @@ void update(void)
 	{
 		angleCube = angleCube + 360.0f;
 	}
-
 }
-
 
 void uninitialize(void)
 {

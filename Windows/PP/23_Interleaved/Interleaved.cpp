@@ -427,7 +427,7 @@ int initialize(void)
 	GLchar *szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(vertexShaderObject,	 // whose?
+	glGetShaderiv(vertexShaderObject,	  // whose?
 				  GL_COMPILE_STATUS,	  //what to get?
 				  &iShaderCompileStatus); //in what?
 
@@ -449,7 +449,7 @@ int initialize(void)
 				GLsizei written;
 
 				glGetShaderInfoLog(vertexShaderObject, //whose?
-								   iInfoLogLength,	 //length?
+								   iInfoLogLength,	   //length?
 								   &written,		   //might have not used all, give that much only which have been used in what?
 								   szInfoLog);		   //store in what?
 
@@ -526,7 +526,7 @@ int initialize(void)
 	szInfoLog = NULL;
 
 	//Step 1 : Call glGetShaderiv() to get comiple status of particular shader
-	glGetShaderiv(fragmentShaderObject,   // whose?
+	glGetShaderiv(fragmentShaderObject,	  // whose?
 				  GL_COMPILE_STATUS,	  //what to get?
 				  &iShaderCompileStatus); //in what?
 
@@ -570,7 +570,7 @@ int initialize(void)
 
 	//Attach vertex shader to shader program
 	glAttachShader(gShaderProgramObject, //to whom?
-				   vertexShaderObject);  //what to attach?
+				   vertexShaderObject);	 //what to attach?
 
 	//Attach fragment shader to shader program
 	glAttachShader(gShaderProgramObject,

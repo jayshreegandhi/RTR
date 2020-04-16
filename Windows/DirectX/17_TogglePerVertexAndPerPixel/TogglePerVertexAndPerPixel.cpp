@@ -40,14 +40,19 @@ ID3D11Device *gpID3D11Device = NULL;
 ID3D11DeviceContext *gpID3D11DeviceContext = NULL;
 ID3D11RenderTargetView *gpID3D11RenderTargetView = NULL;
 
-ID3D11VertexShader *gpID3D11VertexShader = NULL;
-ID3D11PixelShader *gpID3D11PixelShader = NULL;
+ID3D11VertexShader *gpID3D11VertexShader_pp = NULL;
+ID3D11PixelShader *gpID3D11PixelShader_pp = NULL;
+
+ID3D11VertexShader *gpID3D11VertexShader_pv = NULL;
+ID3D11PixelShader *gpID3D11PixelShader_pv = NULL;
 
 ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Position_Sphere = NULL;
 ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Normal_Sphere = NULL;
 ID3D11Buffer *gpID3D11Buffer_IndexBuffer_Sphere = NULL;
 
-ID3D11InputLayout *gpID3D11InputLayout = NULL;
+ID3D11InputLayout *gpID3D11InputLayout_pp = NULL;
+ID3D11InputLayout *gpID3D11InputLayout_pv = NULL;
+
 ID3D11Buffer *gpID3D11Buffer_ConstantBuffer = NULL;
 
 ID3D11RasterizerState *gpID3D11RasterizerState = NULL;
@@ -73,6 +78,8 @@ struct CBUFFER
 };
 
 bool gbLight = false;
+bool vKeyPressed = true;
+bool pKeyPressed = false;
 
 float sphere_vertices[1146];
 float sphere_normals[1146];
@@ -80,7 +87,6 @@ float sphere_texture[746];
 unsigned short sphere_elements[2280];
 int gNumVertices = 0;
 int gNumElements = 0;
-
 
 float LightAmbient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 float LightDiffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -246,6 +252,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		{
 		case VK_ESCAPE:
 			DestroyWindow(hwnd);
+			break;
+
+		case 'v':
+		case 'V':
+			vKeyPressed = true;
+			pKeyPressed = false;
+			break;
+
+		case 'p':
+		case 'P':
+			pKeyPressed = true;
+			vKeyPressed = false;
 			break;
 
 		case 'f':
@@ -436,9 +454,8 @@ HRESULT initialize(void)
 	}
 
 	//initialize shaders, input layout, constant buffers, etc.
-
-	//**********************VERTEX SHADER**********************************************
-	const char *vertexShaderSourceCode =
+	//**********************VERTEX SHADER PP**********************************************
+	const char *vertexShaderSourceCode_pp =
 		"cbuffer ConstantBuffer" \
 		"{" \
 		"	float4x4 worldMatrix;" \
@@ -476,11 +493,11 @@ HRESULT initialize(void)
 		"	return(output);" \
 		"}";
 
-	ID3DBlob *pID3DBlob_VertexShaderCode = NULL;
+	ID3DBlob *pID3DBlob_VertexShaderCode_pp = NULL;
 	ID3DBlob *pID3DBlob_Error = NULL;
 
-	hr = D3DCompile(vertexShaderSourceCode,
-		lstrlenA(vertexShaderSourceCode) + 1,
+	hr = D3DCompile(vertexShaderSourceCode_pp,
+		lstrlenA(vertexShaderSourceCode_pp) + 1,
 		"VS",
 		NULL,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,
@@ -488,7 +505,7 @@ HRESULT initialize(void)
 		"vs_5_0",
 		0,
 		0,
-		&pID3DBlob_VertexShaderCode,
+		&pID3DBlob_VertexShaderCode_pp,
 		&pID3DBlob_Error);
 
 	if (FAILED(hr))
@@ -496,7 +513,7 @@ HRESULT initialize(void)
 		if (pID3DBlob_Error != NULL)
 		{
 			fopen_s(&gpFile, gszLogFileName, "a+");
-			fprintf_s(gpFile, "D3DCompile() failed for vertex shader : %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fprintf_s(gpFile, "D3DCompile() failed for vertex shader PP: %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
 			fclose(gpFile);
 			pID3DBlob_Error->Release();
 			pID3DBlob_Error = NULL;
@@ -506,33 +523,133 @@ HRESULT initialize(void)
 	else
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "D3DCompile() succeeded for vertex shader.\n");
+		fprintf_s(gpFile, "D3DCompile() succeeded for vertex shader PP.\n");
 		fclose(gpFile);
 	}
 
-	hr = gpID3D11Device->CreateVertexShader(pID3DBlob_VertexShaderCode->GetBufferPointer(),
-		pID3DBlob_VertexShaderCode->GetBufferSize(),
+	hr = gpID3D11Device->CreateVertexShader(pID3DBlob_VertexShaderCode_pp->GetBufferPointer(),
+		pID3DBlob_VertexShaderCode_pp->GetBufferSize(),
 		NULL,
-		&gpID3D11VertexShader);
+		&gpID3D11VertexShader_pp);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() failed.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() failed PP.\n");
 		fclose(gpFile);
 		return(hr);
 	}
 	else
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() succeeded.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() succeeded PP.\n");
 		fclose(gpFile);
-		//return(hr);
 	}
 
-	gpID3D11DeviceContext->VSSetShader(gpID3D11VertexShader, NULL, 0);
+	//initialize shaders, input layout, constant buffers, etc.
+	//**********************VERTEX SHADER PV**********************************************
+	const char *vertexShaderSourceCode_pv =
+		"cbuffer ConstantBuffer" \
+		"{" \
+		"	float4x4 worldMatrix;" \
+		"	float4x4 viewMatrix;" \
+		"	float4x4 projectionMatrix;" \
+		"	float4 la;" \
+		"	float4 ld;" \
+		"	float4 ls;" \
+		"	float4 lightPosition;" \
+		"	float4 ka;" \
+		"	float4 kd;" \
+		"	float4 ks;" \
+		"	float material_shininess;" \
+		"	uint lKeyPressed;" \
+		"}" \
+		"struct vertex_output" \
+		"{" \
+		"	float4 position : SV_POSITION;" \
+		"	float4 phong_ads_light : COLOR;" \
+		"};" \
+		"vertex_output main(float4 pos : POSITION, float4 normal : NORMAL)" \
+		"{" \
+		"	vertex_output output;" \
+		"	if(lKeyPressed == 1)" \
+		"	{" \
+		"		float4 eyeCoordinates = mul(worldMatrix,pos);" \
+		"		eyeCoordinates = mul(viewMatrix,eyeCoordinates);" \
+		"		float3 tNorm = (float3)normalize(mul((float3x3)worldMatrix,(float3)normal));" \
+		"		float3 s = (float3)normalize(lightPosition - eyeCoordinates);" \
+		"		float tNorm_dot_lightDirection = max(dot(tNorm, s), 0.0);" \
+		"		float4 ambient = la * ka;" \
+		"		float4 diffuse = ld * kd * tNorm_dot_lightDirection;" \
+		"		float3 reflectionVector = reflect(-s, tNorm_dot_lightDirection);" \
+		"		float3 viewerVector = normalize(-eyeCoordinates.xyz);" \
+		"		float4 specular = ls * ks * pow(max(dot(reflectionVector, viewerVector), 0.0), material_shininess);" \
+		"		output.phong_ads_light = ambient  + diffuse + specular;" \
+		"	}" \
+		"	else" \
+		"	{" \
+		"		output.phong_ads_light = float4(1.0, 1.0, 1.0, 1.0);" \
+		"	}" \
+		"	float4 position = mul(worldMatrix, pos);" \
+		"	position = mul(viewMatrix, position);" \
+		"	position = mul(projectionMatrix, position);" \
+		"	output.position = position;" \
+		"	return(output);" \
+		"}";
 
-	//*************************PIXEL SHADER************************************
-	const char *pixelShaderSourceCode =
+	ID3DBlob *pID3DBlob_VertexShaderCode_pv = NULL;
+	pID3DBlob_Error = NULL;
+
+	hr = D3DCompile(vertexShaderSourceCode_pv,
+		lstrlenA(vertexShaderSourceCode_pv) + 1,
+		"VS",
+		NULL,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"vs_5_0",
+		0,
+		0,
+		&pID3DBlob_VertexShaderCode_pv,
+		&pID3DBlob_Error);
+
+	if (FAILED(hr))
+	{
+		if (pID3DBlob_Error != NULL)
+		{
+			fopen_s(&gpFile, gszLogFileName, "a+");
+			fprintf_s(gpFile, "D3DCompile() failed for vertex shader PV: %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fclose(gpFile);
+			pID3DBlob_Error->Release();
+			pID3DBlob_Error = NULL;
+			return(hr);
+		}
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "D3DCompile() succeeded for vertex shader PV.\n");
+		fclose(gpFile);
+	}
+
+	hr = gpID3D11Device->CreateVertexShader(pID3DBlob_VertexShaderCode_pv->GetBufferPointer(),
+		pID3DBlob_VertexShaderCode_pv->GetBufferSize(),
+		NULL,
+		&gpID3D11VertexShader_pv);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() failed PV.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateVertexShader() succeeded PV.\n");
+		fclose(gpFile);
+	}
+	
+	//*************************PIXEL SHADER PP************************************
+	const char *pixelShaderSourceCode_pp =
 		"cbuffer ConstantBuffer" \
 		"{" \
 		"	float4x4 worldMatrix;" \
@@ -578,11 +695,11 @@ HRESULT initialize(void)
 		"	return(color);" \
 		"}";
 
-	ID3DBlob *pID3DBlob_PixelShaderCode = NULL;
+	ID3DBlob *pID3DBlob_PixelShaderCode_pp = NULL;
 	pID3DBlob_Error = NULL;
 
-	hr = D3DCompile(pixelShaderSourceCode,
-		lstrlenA(pixelShaderSourceCode) + 1,
+	hr = D3DCompile(pixelShaderSourceCode_pp,
+		lstrlenA(pixelShaderSourceCode_pp) + 1,
 		"PS",
 		NULL,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,
@@ -590,7 +707,7 @@ HRESULT initialize(void)
 		"ps_5_0",
 		0,
 		0,
-		&pID3DBlob_PixelShaderCode,
+		&pID3DBlob_PixelShaderCode_pp,
 		&pID3DBlob_Error);
 
 	if (FAILED(hr))
@@ -598,7 +715,7 @@ HRESULT initialize(void)
 		if (pID3DBlob_Error != NULL)
 		{
 			fopen_s(&gpFile, gszLogFileName, "a+");
-			fprintf_s(gpFile, "D3DCompile() failed for pixel shader : %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fprintf_s(gpFile, "D3DCompile() failed for pixel shader PP: %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
 			fclose(gpFile);
 			pID3DBlob_Error->Release();
 			pID3DBlob_Error = NULL;
@@ -608,30 +725,88 @@ HRESULT initialize(void)
 	else
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "D3DCompile() succeeded for pixel shader.\n");
+		fprintf_s(gpFile, "D3DCompile() succeeded for pixel shader PP.\n");
 		fclose(gpFile);
 	}
 
-	hr = gpID3D11Device->CreatePixelShader(pID3DBlob_PixelShaderCode->GetBufferPointer(),
-		pID3DBlob_PixelShaderCode->GetBufferSize(),
+	hr = gpID3D11Device->CreatePixelShader(pID3DBlob_PixelShaderCode_pp->GetBufferPointer(),
+		pID3DBlob_PixelShaderCode_pp->GetBufferSize(),
 		NULL,
-		&gpID3D11PixelShader);
+		&gpID3D11PixelShader_pp);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() failed.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() failed PP.\n");
 		fclose(gpFile);
 		return(hr);
 	}
 	else
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() succeeded.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() succeeded PP.\n");
 		fclose(gpFile);
 		//return(hr);
 	}
 
-	gpID3D11DeviceContext->PSSetShader(gpID3D11PixelShader, NULL, 0);
+	//*************************PIXEL SHADER PV************************************
+	const char *pixelShaderSourceCode_pv =
+		"float4 main(float4 pos : SV_POSITION, float4 phong_ads_light : COLOR) : SV_TARGET" \
+		"{" \
+		"	float4 color = phong_ads_light;" \
+		"	return(color);" \
+		"}";
+
+	ID3DBlob *pID3DBlob_PixelShaderCode_pv = NULL;
+	pID3DBlob_Error = NULL;
+
+	hr = D3DCompile(pixelShaderSourceCode_pv,
+		lstrlenA(pixelShaderSourceCode_pv) + 1,
+		"PS",
+		NULL,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"ps_5_0",
+		0,
+		0,
+		&pID3DBlob_PixelShaderCode_pv,
+		&pID3DBlob_Error);
+
+	if (FAILED(hr))
+	{
+		if (pID3DBlob_Error != NULL)
+		{
+			fopen_s(&gpFile, gszLogFileName, "a+");
+			fprintf_s(gpFile, "D3DCompile() failed for pixel shader PV: %s.\n", (char*)pID3DBlob_Error->GetBufferPointer());
+			fclose(gpFile);
+			pID3DBlob_Error->Release();
+			pID3DBlob_Error = NULL;
+			return(hr);
+		}
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "D3DCompile() succeeded for pixel shader PV.\n");
+		fclose(gpFile);
+	}
+
+	hr = gpID3D11Device->CreatePixelShader(pID3DBlob_PixelShaderCode_pv->GetBufferPointer(),
+		pID3DBlob_PixelShaderCode_pv->GetBufferSize(),
+		NULL,
+		&gpID3D11PixelShader_pv);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() failed PV.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreatePixelShader() succeeded PV.\n");
+		fclose(gpFile);
+	}
 
 	//create and set input layout
 	D3D11_INPUT_ELEMENT_DESC inputElementDesc[2];
@@ -653,33 +828,58 @@ HRESULT initialize(void)
 	inputElementDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 	inputElementDesc[1].InstanceDataStepRate = 0;
 
+	//vs_pp
 	hr = gpID3D11Device->CreateInputLayout(inputElementDesc,
 		_ARRAYSIZE(inputElementDesc),
-		pID3DBlob_VertexShaderCode->GetBufferPointer(),
-		pID3DBlob_VertexShaderCode->GetBufferSize(),
-		&gpID3D11InputLayout);
+		pID3DBlob_VertexShaderCode_pp->GetBufferPointer(),
+		pID3DBlob_VertexShaderCode_pp->GetBufferSize(),
+		&gpID3D11InputLayout_pp);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() failed.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() failed PP.\n");
 		fclose(gpFile);
 		return(hr);
 	}
 	else
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() succeeded.\n");
+		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() succeeded PP.\n");
 		fclose(gpFile);
-		//return(hr);
 	}
 
-	gpID3D11DeviceContext->IASetInputLayout(gpID3D11InputLayout);
+	//vs_pv
+	hr = gpID3D11Device->CreateInputLayout(inputElementDesc,
+		_ARRAYSIZE(inputElementDesc),
+		pID3DBlob_VertexShaderCode_pv->GetBufferPointer(),
+		pID3DBlob_VertexShaderCode_pv->GetBufferSize(),
+		&gpID3D11InputLayout_pp);
+	if (FAILED(hr))
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() failed PV.\n");
+		fclose(gpFile);
+		return(hr);
+	}
+	else
+	{
+		fopen_s(&gpFile, gszLogFileName, "a+");
+		fprintf_s(gpFile, "ID3D11Device::CreateInputLayout() succeeded PV.\n");
+		fclose(gpFile);
+	}
+	
 
-	pID3DBlob_VertexShaderCode->Release();
-	pID3DBlob_VertexShaderCode = NULL;
+	pID3DBlob_VertexShaderCode_pp->Release();
+	pID3DBlob_VertexShaderCode_pp = NULL;
 
-	pID3DBlob_PixelShaderCode->Release();
-	pID3DBlob_PixelShaderCode = NULL;
+	pID3DBlob_VertexShaderCode_pv->Release();
+	pID3DBlob_VertexShaderCode_pv = NULL;
+
+	pID3DBlob_PixelShaderCode_pp->Release();
+	pID3DBlob_PixelShaderCode_pp = NULL;
+
+	pID3DBlob_PixelShaderCode_pv->Release();
+	pID3DBlob_PixelShaderCode_pv = NULL;
 
 	getSphereVertexData(sphere_vertices,
 		sphere_normals,
@@ -982,6 +1182,20 @@ void display(void)
 
 	gpID3D11DeviceContext->ClearDepthStencilView(gpID3D11DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+	if (pKeyPressed == true)
+	{
+		gpID3D11DeviceContext->VSSetShader(gpID3D11VertexShader_pp, NULL, 0);
+		gpID3D11DeviceContext->PSSetShader(gpID3D11PixelShader_pp, NULL, 0);
+		gpID3D11DeviceContext->IASetInputLayout(gpID3D11InputLayout_pp);
+
+	}
+	else if(vKeyPressed == true)
+	{
+		gpID3D11DeviceContext->VSSetShader(gpID3D11VertexShader_pv, NULL, 0);
+		gpID3D11DeviceContext->PSSetShader(gpID3D11PixelShader_pv, NULL, 0);
+		gpID3D11DeviceContext->IASetInputLayout(gpID3D11InputLayout_pv);
+
+	}
 	//sphere
 	//position
 	UINT stride = sizeof(float) * 3;
@@ -1084,22 +1298,40 @@ void uninitialize(void)
 		gpID3D11Buffer_VertexBuffer_Position_Sphere = NULL;
 	}
 
-	if (gpID3D11InputLayout)
+	if (gpID3D11InputLayout_pp)
 	{
-		gpID3D11InputLayout->Release();
-		gpID3D11InputLayout = NULL;
+		gpID3D11InputLayout_pp->Release();
+		gpID3D11InputLayout_pp = NULL;
 	}
 
-	if (gpID3D11PixelShader)
+	if (gpID3D11InputLayout_pv)
 	{
-		gpID3D11PixelShader->Release();
-		gpID3D11PixelShader = NULL;
+		gpID3D11InputLayout_pv->Release();
+		gpID3D11InputLayout_pv = NULL;
 	}
 
-	if (gpID3D11VertexShader)
+	if (gpID3D11PixelShader_pp)
 	{
-		gpID3D11VertexShader->Release();
-		gpID3D11VertexShader = NULL;
+		gpID3D11PixelShader_pp->Release();
+		gpID3D11PixelShader_pp = NULL;
+	}
+
+	if (gpID3D11PixelShader_pv)
+	{
+		gpID3D11PixelShader_pv->Release();
+		gpID3D11PixelShader_pv = NULL;
+	}
+
+	if (gpID3D11VertexShader_pp)
+	{
+		gpID3D11VertexShader_pp->Release();
+		gpID3D11VertexShader_pp = NULL;
+	}
+
+	if (gpID3D11VertexShader_pv)
+	{
+		gpID3D11VertexShader_pv->Release();
+		gpID3D11VertexShader_pv = NULL;
 	}
 
 	if (gpID3D11DepthStencilView)
