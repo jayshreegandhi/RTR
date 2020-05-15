@@ -36,7 +36,7 @@
 
 
 - (void)applicationWillResignActive:(UIApplication *)application {
-    [myView stopAnimation];
+    //[myView stopAnimation];
 }
 
 
@@ -51,21 +51,21 @@
 
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-    [myView startAnimation];
+    //[myView startAnimation];
 }
 
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-    [myView stopAnimation];
+    //[myView stopAnimation];
 }
 
 - (void)dealloc
 {
-    [super dealloc];
-    
     [myView release];
     [mainViewController release];
     [mainWindow release];
+    
+    [super dealloc];
 }
 
 @end

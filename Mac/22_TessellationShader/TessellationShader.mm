@@ -214,11 +214,10 @@ int main(int argc, const char* argv[])
 	const GLchar *vertexShaderSourceCode =
 		"#version 410" \
 		"\n" \
-		"in vec4 vPosition;" \
-		"uniform mat4 u_mvp_matrix;" \
+		"in vec2 vPosition;" \
 		"void main(void)" \
 		"{" \
-		"gl_Position = u_mvp_matrix * vPosition;" \
+		"gl_Position = vec4(vPosition, 0.0, 1.0);" \
 		"}";
 
 	//specify above source code to vertex shader object
@@ -589,7 +588,7 @@ int main(int argc, const char* argv[])
 		-1.0f, -1.0f,
 		-0.5f, 1.0f,
 		0.5f, -1.0f,
-		1.0f, -1.0f};
+		1.0f, 1.0f};
 
 	//create vao (vertex array object)
 	glGenVertexArrays(1, &vao);
@@ -625,6 +624,8 @@ int main(int argc, const char* argv[])
 
 	//unbind vao
 	glBindVertexArray(0);
+    
+    numberOfLineSegments = 1;
 
     glClearDepth(1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -634,7 +635,7 @@ int main(int argc, const char* argv[])
     glLineWidth(5.0f);
     
     //set bk color
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     perspectiveProjectionMatrix = vmath::mat4::identity();
 
@@ -695,7 +696,7 @@ int main(int argc, const char* argv[])
 	translationMatrix = vmath::mat4::identity();
 
 	//do necessary transformation
-	translationMatrix = vmath::translate(0.5f, 0.5f, -5.0f);
+	translationMatrix = vmath::translate(0.0f, 0.0f, -8.0f);
 
 	//do necessary matrix multiplication
 	//this was internally done by gluOrtho() in ffp
@@ -725,7 +726,9 @@ int main(int argc, const char* argv[])
 
 	//bind with vao
 	glBindVertexArray(vao);
-
+    
+    glPatchParameteri(GL_PATCH_VERTICES, 4);
+    
 	//similarly bind with textures if any
 
 	//now draw the necessary scene

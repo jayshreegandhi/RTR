@@ -19,6 +19,22 @@ enum
     AMC_ATTRIBUTE_TEXCOORD0
 };
 
+float LightAngleZero = 0.0f;
+float LightAngleOne = 0.0f;
+float LightAngleTwo = 0.0f;
+
+GLfloat LightAmbient[4];
+GLfloat LightDiffuse[4];
+GLfloat LightSpecular[4];
+GLfloat LightPosition[4];
+
+GLfloat MaterialAmbient[24][4];
+GLfloat MaterialDiffuse[24][4];
+GLfloat MaterialSpecular[24][4];
+GLfloat MaterialShininess[24];
+
+vmath::mat4 perspectiveProjectionMatrix;
+
 // C Style global function declaration
 CVReturn MyDisplayLinkCallback(CVDisplayLinkRef, const CVTimeStamp *, const CVTimeStamp *, CVOptionFlags, CVOptionFlags *, void *);
 
@@ -150,16 +166,6 @@ int main(int argc, const char* argv[])
 
 	GLuint lKeyPressedUniform;
 
-	GLfloat LightAmbient[4];
-	GLfloat LightDiffuse[4];
-	GLfloat LightSpecular[4];
-	GLfloat LightPosition[4];
-
-	GLfloat MaterialAmbient[24][4];
-	GLfloat MaterialDiffuse[24][4];
-	GLfloat MaterialSpecular[24][4];
-	GLfloat MaterialShininess[24];
-
 	bool gbLight;
 
 	GLfloat rotationAngleX;
@@ -180,8 +186,6 @@ int main(int argc, const char* argv[])
 	short sphere_elements[2280];
 	int gNumVertices;
 	int gNumElements;
-
-    vmath::mat4 perspectiveProjectionMatrix;
 }
 
 -(id)initWithFrame:(NSRect)frame
@@ -661,6 +665,462 @@ int main(int argc, const char* argv[])
     CVDisplayLinkStart(displayLink);
 }
 
+void setMaterialSphere(void)
+{
+    //material 1 : Emerald
+    MaterialAmbient[0][0] = 0.0215f;
+    MaterialAmbient[0][1] = 0.1745f;
+    MaterialAmbient[0][2] = 0.0215f;
+    MaterialAmbient[0][3] = 1.0f;
+
+    MaterialDiffuse[0][0] = 0.07568f;
+    MaterialDiffuse[0][1] = 0.61424f;
+    MaterialDiffuse[0][2] = 0.07568f;
+    MaterialDiffuse[0][3] = 1.0f;
+
+    MaterialSpecular[0][0] = 0.633f;
+    MaterialSpecular[0][1] = 0.727811f;
+    MaterialSpecular[0][2] = 0.633f;
+    MaterialSpecular[0][3] = 1.0f;
+
+    MaterialShininess[0] = 0.6f * 128.0f;
+
+    //material 2: Jade
+    MaterialAmbient[1][0] = 0.135f;
+    MaterialAmbient[1][1] = 0.225f;
+    MaterialAmbient[1][2] = 0.1575f;
+    MaterialAmbient[1][3] = 1.0f;
+
+    MaterialDiffuse[1][0] = 0.54f;
+    MaterialDiffuse[1][1] = 0.89f;
+    MaterialDiffuse[1][2] = 0.63f;
+    MaterialDiffuse[1][3] = 1.0f;
+
+    MaterialSpecular[1][0] = 0.316228f;
+    MaterialSpecular[1][1] = 0.316228f;
+    MaterialSpecular[1][2] = 0.316228f;
+    MaterialSpecular[1][3] = 1.0f;
+
+    MaterialShininess[1] = 0.1f * 128.0f;
+
+    //material 3 : Obsidian
+    MaterialAmbient[2][0] = 0.05375f;
+    MaterialAmbient[2][1] = 0.05f;
+    MaterialAmbient[2][2] = 0.06625f;
+    MaterialAmbient[2][3] = 1.0f;
+
+    MaterialDiffuse[2][0] = 0.18275f;
+    MaterialDiffuse[2][1] = 0.17f;
+    MaterialDiffuse[2][2] = 0.22525f;
+    MaterialDiffuse[2][3] = 1.0f;
+
+    MaterialSpecular[2][0] = 0.332741f;
+    MaterialSpecular[2][1] = 0.328634f;
+    MaterialSpecular[2][2] = 0.346435f;
+    MaterialSpecular[2][3] = 1.0f;
+
+    MaterialShininess[2] = 0.3f * 128.0f;
+
+
+    //material 4 : Pearl
+    MaterialAmbient[3][0] = 0.25f;
+    MaterialAmbient[3][1] = 0.20725f;
+    MaterialAmbient[3][2] = 0.20725f;
+    MaterialAmbient[3][3] = 1.0f;
+
+    MaterialDiffuse[3][0] = 1.0f;
+    MaterialDiffuse[3][1] = 0.829f;
+    MaterialDiffuse[3][2] = 0.829f;
+    MaterialDiffuse[3][3] = 1.0f;
+
+    MaterialSpecular[3][0] = 0.296648f;
+    MaterialSpecular[3][1] = 0.296648f;
+    MaterialSpecular[3][2] = 0.296648f;
+    MaterialSpecular[3][3] = 1.0f;
+
+    MaterialShininess[3] = 0.088f * 128.0f;
+
+    //material 5 : Ruby
+
+    MaterialAmbient[4][0] = 0.1745f;
+    MaterialAmbient[4][1] = 0.01175f;
+    MaterialAmbient[4][2] = 0.01175f;
+    MaterialAmbient[4][3] = 1.0f;
+
+    MaterialDiffuse[4][0] = 0.61424f;
+    MaterialDiffuse[4][1] = 0.04136f;
+    MaterialDiffuse[4][2] = 0.04136f;
+    MaterialDiffuse[4][3] = 1.0f;
+
+    MaterialSpecular[4][0] = 0.727811f;
+    MaterialSpecular[4][1] = 0.626959f;
+    MaterialSpecular[4][2] = 0.626959f;
+    MaterialSpecular[4][3] = 1.0f;
+
+    MaterialShininess[4] = 0.6f * 128.0f;
+
+    //material 6 : Turquoise
+
+    MaterialAmbient[5][0] = 0.1f;
+    MaterialAmbient[5][1] = 0.18725f;
+    MaterialAmbient[5][2] = 0.1745f;
+    MaterialAmbient[5][3] = 1.0f;
+
+    MaterialDiffuse[5][0] = 0.396f;
+    MaterialDiffuse[5][1] = 0.74151f;
+    MaterialDiffuse[5][2] = 0.69102f;
+    MaterialDiffuse[5][3] = 1.0f;
+
+    MaterialSpecular[5][0] = 0.297254f;
+    MaterialSpecular[5][1] = 0.30829f;
+    MaterialSpecular[5][2] = 0.306678f;
+    MaterialSpecular[5][3] = 1.0f;
+
+    MaterialShininess[5] = 0.1f * 128.0f;
+
+    //---------------COLUMN 2 : METAL -----------------------------
+    //material 1 : Brass
+    MaterialAmbient[6][0] = 0.329412f;
+    MaterialAmbient[6][1] = 0.223529f;
+    MaterialAmbient[6][2] = 0.027451f;
+    MaterialAmbient[6][3] = 1.0f;
+
+    MaterialDiffuse[6][0] = 0.780392f;
+    MaterialDiffuse[6][1] = 0.568627f;
+    MaterialDiffuse[6][2] = 0.113725f;
+    MaterialDiffuse[6][3] = 1.0f;
+
+    MaterialSpecular[6][0] = 0.992157f;
+    MaterialSpecular[6][1] = 0.941176f;
+    MaterialSpecular[6][2] = 0.807843f;
+    MaterialSpecular[6][3] = 1.0f;
+
+    MaterialShininess[6] = 0.21794872f * 128.0f;
+
+    //material  2 : Bronze
+    MaterialAmbient[7][0] = 0.2125f;
+    MaterialAmbient[7][1] = 0.1275f;
+    MaterialAmbient[7][2] = 0.054f;
+    MaterialAmbient[7][3] = 1.0f;
+
+    MaterialDiffuse[7][0] = 0.714f;
+    MaterialDiffuse[7][1] = 0.4284f;
+    MaterialDiffuse[7][2] = 0.18144f;
+    MaterialDiffuse[7][3] = 1.0f;
+
+    MaterialSpecular[7][0] = 0.393548f;
+    MaterialSpecular[7][1] = 0.271906f;
+    MaterialSpecular[7][2] = 0.166721f;
+    MaterialSpecular[7][3] = 1.0f;
+
+    MaterialShininess[7] = 0.2f * 128.0f;
+
+    //material 3 : Chrome
+    MaterialAmbient[8][0] = 0.25f;
+    MaterialAmbient[8][1] = 0.25f;
+    MaterialAmbient[8][2] = 0.25f;
+    MaterialAmbient[8][3] = 1.0f;
+
+    MaterialDiffuse[8][0] = 0.4f;
+    MaterialDiffuse[8][1] = 0.4f;
+    MaterialDiffuse[8][2] = 0.4f;
+    MaterialDiffuse[8][3] = 1.0f;
+
+    MaterialSpecular[8][0] = 0.774597f;
+    MaterialSpecular[8][1] = 0.774597f;
+    MaterialSpecular[8][2] = 0.774597f;
+    MaterialSpecular[8][3] = 1.0f;
+
+    MaterialShininess[8] = 0.6f * 128.0f;
+
+    //material 4 : Copper
+    MaterialAmbient[9][0] = 0.19125f;
+    MaterialAmbient[9][1] = 0.0735f;
+    MaterialAmbient[9][2] = 0.0225f;
+    MaterialAmbient[9][3] = 1.0f;
+
+    MaterialDiffuse[9][0] = 0.7038f;
+    MaterialDiffuse[9][1] = 0.27048f;
+    MaterialDiffuse[9][2] = 0.0828f;
+    MaterialDiffuse[9][3] = 1.0f;
+
+    MaterialSpecular[9][0] = 0.256777f;
+    MaterialSpecular[9][1] = 0.1376222f;
+    MaterialSpecular[9][2] = 0.086014f;
+    MaterialSpecular[9][3] = 1.0f;
+
+    MaterialShininess[9] = 0.1f * 128.0f;
+
+    //material 5 : Gold
+    MaterialAmbient[10][0] = 0.24725f;
+    MaterialAmbient[10][1] = 0.1995f;
+    MaterialAmbient[10][2] = 0.0745f;
+    MaterialAmbient[10][3] = 1.0f;
+
+    MaterialDiffuse[10][0] = 0.75164f;
+    MaterialDiffuse[10][1] = 0.60648f;
+    MaterialDiffuse[10][2] = 0.22648f;
+    MaterialDiffuse[10][3] = 1.0f;
+
+    MaterialSpecular[10][0] = 0.628281f;
+    MaterialSpecular[10][1] = 0.555802f;
+    MaterialSpecular[10][2] = 0.366065f;
+    MaterialSpecular[10][3] = 1.0f;
+
+    MaterialShininess[10] = 0.4f * 128.0f;
+
+    //material 6 : Silver
+    MaterialAmbient[11][0] = 0.19225f;
+    MaterialAmbient[11][1] = 0.19225f;
+    MaterialAmbient[11][2] = 0.19225f;
+    MaterialAmbient[11][3] = 1.0f;
+
+    MaterialDiffuse[11][0] = 0.50754f;
+    MaterialDiffuse[11][1] = 0.50754f;
+    MaterialDiffuse[11][2] = 0.50754f;
+    MaterialDiffuse[11][3] = 1.0f;
+
+    MaterialSpecular[11][0] = 0.508273f;
+    MaterialSpecular[11][1] = 0.508273f;
+    MaterialSpecular[11][2] = 0.508273f;
+    MaterialSpecular[11][3] = 1.0f;
+
+    MaterialShininess[11] = 0.4f * 128.0f;
+
+    //---------------COLUMN 3 : PLASTIC -----------------------------
+    //material 1 : Black
+
+    MaterialAmbient[12][0] = 0.0f;
+    MaterialAmbient[12][1] = 0.0f;
+    MaterialAmbient[12][2] = 0.0f;
+    MaterialAmbient[12][3] = 1.0f;
+
+    MaterialDiffuse[12][0] = 0.0f;
+    MaterialDiffuse[12][1] = 0.0f;
+    MaterialDiffuse[12][2] = 0.0f;
+    MaterialDiffuse[12][3] = 1.0f;
+
+    MaterialSpecular[12][0] = 0.50f;
+    MaterialSpecular[12][1] = 0.50f;
+    MaterialSpecular[12][2] = 0.50f;
+    MaterialSpecular[12][3] = 1.0f;
+
+    MaterialShininess[12] = 0.25f * 128.0f;
+
+    //material  2 : Cyan
+    MaterialAmbient[13][0] = 0.0f;
+    MaterialAmbient[13][1] = 0.1f;
+    MaterialAmbient[13][2] = 0.06f;
+    MaterialAmbient[13][3] = 1.0f;
+
+    MaterialDiffuse[13][0] = 0.0f;
+    MaterialDiffuse[13][1] = 0.50980329f;
+    MaterialDiffuse[13][2] = 0.50980329f;
+    MaterialDiffuse[13][3] = 1.0f;
+
+    MaterialSpecular[13][0] = 0.50196078f;
+    MaterialSpecular[13][1] = 0.50196078f;
+    MaterialSpecular[13][2] = 0.50196078f;
+    MaterialSpecular[13][3] = 1.0f;
+
+    MaterialShininess[13] = 0.25f * 128.0f;
+
+    //material 3 : Green
+    MaterialAmbient[14][0] = 0.0f;
+    MaterialAmbient[14][1] = 0.0f;
+    MaterialAmbient[14][2] = 0.0f;
+    MaterialAmbient[14][3] = 1.0f;
+
+    MaterialDiffuse[14][0] = 0.1f;
+    MaterialDiffuse[14][1] = 0.35f;
+    MaterialDiffuse[14][2] = 0.1f;
+    MaterialDiffuse[14][3] = 1.0f;
+
+
+    MaterialSpecular[14][0] = 0.45f;
+    MaterialSpecular[14][1] = 0.55f;
+    MaterialSpecular[14][2] = 0.45f;
+    MaterialSpecular[14][3] = 1.0f;
+
+    MaterialShininess[14] = 0.25f * 128.0f;
+
+    //material 4 : red
+    MaterialAmbient[15][0] = 0.0f;
+    MaterialAmbient[15][1] = 0.0f;
+    MaterialAmbient[15][2] = 0.0f;
+    MaterialAmbient[15][3] = 1.0f;
+
+    MaterialDiffuse[15][0] = 0.5f;
+    MaterialDiffuse[15][1] = 0.0f;
+    MaterialDiffuse[15][2] = 0.0f;
+    MaterialDiffuse[15][3] = 1.0f;
+
+    MaterialSpecular[15][0] = 0.7f;
+    MaterialSpecular[15][1] = 0.6f;
+    MaterialSpecular[15][2] = 0.6f;
+    MaterialSpecular[15][3] = 1.0f;
+
+    MaterialShininess[15] = 0.25f * 128.0f;
+
+    //material 5 : white
+    MaterialAmbient[16][0] = 0.0f;
+    MaterialAmbient[16][1] = 0.0f;
+    MaterialAmbient[16][2] = 0.0f;
+    MaterialAmbient[16][3] = 1.0f;
+
+    MaterialDiffuse[16][0] = 0.55f;
+    MaterialDiffuse[16][1] = 0.55f;
+    MaterialDiffuse[16][2] = 0.55f;
+    MaterialDiffuse[16][3] = 1.0f;
+
+    MaterialSpecular[16][0] = 0.70f;
+    MaterialSpecular[16][1] = 0.70f;
+    MaterialSpecular[16][2] = 0.70f;
+    MaterialSpecular[16][3] = 1.0f;
+
+    MaterialShininess[16] = 0.4f * 128.0f;
+
+    //material 6 : yellow
+    MaterialAmbient[17][0] = 0.0f;
+    MaterialAmbient[17][1] = 0.0f;
+    MaterialAmbient[17][2] = 0.0f;
+    MaterialAmbient[17][3] = 1.0f;
+
+    MaterialDiffuse[17][0] = 0.5f;
+    MaterialDiffuse[17][1] = 0.5f;
+    MaterialDiffuse[17][2] = 0.0f;
+    MaterialDiffuse[17][3] = 1.0f;
+
+    MaterialSpecular[17][0] = 0.60f;
+    MaterialSpecular[17][1] = 0.60f;
+    MaterialSpecular[17][2] = 0.50f;
+    MaterialSpecular[17][3] = 1.0f;
+
+    MaterialShininess[17] = 0.35f * 128.0f;
+
+
+    //---------------COLUMN 4 : RUBBER -----------------------------
+    //material 1 : Black
+    MaterialAmbient[18][0] = 0.02f;
+    MaterialAmbient[18][1] = 0.02f;
+    MaterialAmbient[18][2] = 0.02f;
+    MaterialAmbient[18][3] = 1.0f;
+
+    MaterialDiffuse[18][0] = 0.01f;
+    MaterialDiffuse[18][1] = 0.01f;
+    MaterialDiffuse[18][2] = 0.01f;
+    MaterialDiffuse[18][3] = 1.0f;
+
+
+    MaterialSpecular[18][0] = 0.4f;
+    MaterialSpecular[18][1] = 0.4f;
+    MaterialSpecular[18][2] = 0.4f;
+    MaterialSpecular[18][3] = 1.0f;
+
+    MaterialShininess[18] = 0.078125f * 128.0f;
+
+    //material  2 : Cyan
+    MaterialAmbient[19][0] = 0.0f;
+    MaterialAmbient[19][1] = 0.05f;
+    MaterialAmbient[19][2] = 0.05f;
+    MaterialAmbient[19][3] = 1.0f;
+
+    MaterialDiffuse[19][0] = 0.4f;
+    MaterialDiffuse[19][1] = 0.5f;
+    MaterialDiffuse[19][2] = 0.5f;
+    MaterialDiffuse[19][3] = 1.0f;
+
+    MaterialSpecular[19][0] = 0.04f;
+    MaterialSpecular[19][1] = 0.7f;
+    MaterialSpecular[19][2] = 0.7f;
+    MaterialSpecular[19][3] = 1.0f;
+
+    MaterialShininess[19] = 0.078125f * 128.0f;
+
+    //material 3 : Green
+    MaterialAmbient[20][0] = 0.0f;
+    MaterialAmbient[20][1] = 0.05f;
+    MaterialAmbient[20][2] = 0.0f;
+    MaterialAmbient[20][3] = 1.0f;
+
+    MaterialDiffuse[20][0] = 0.4f;
+    MaterialDiffuse[20][1] = 0.5f;
+    MaterialDiffuse[20][2] = 0.4f;
+    MaterialDiffuse[20][3] = 1.0f;
+
+    MaterialSpecular[20][0] = 0.04f;
+    MaterialSpecular[20][1] = 0.7f;
+    MaterialSpecular[20][2] = 0.04f;
+    MaterialSpecular[20][3] = 1.0f;
+
+    MaterialShininess[20] = 0.078125f * 128.0f;
+
+    //material 4 : red
+    MaterialAmbient[21][0] = 0.05f;
+    MaterialAmbient[21][1] = 0.0f;
+    MaterialAmbient[21][2] = 0.0f;
+    MaterialAmbient[21][3] = 1.0f;
+
+    MaterialDiffuse[21][0] = 0.5f;
+    MaterialDiffuse[21][1] = 0.4f;
+    MaterialDiffuse[21][2] = 0.4f;
+    MaterialDiffuse[21][3] = 1.0f;
+
+    MaterialSpecular[21][0] = 0.7f;
+    MaterialSpecular[21][1] = 0.04f;
+    MaterialSpecular[21][2] = 0.04f;
+    MaterialSpecular[21][3] = 1.0f;
+
+    MaterialShininess[21] = 0.078125f * 128.0f;
+
+    //material 5 : white
+    MaterialAmbient[22][0] = 0.05f;
+    MaterialAmbient[22][1] = 0.05f;
+    MaterialAmbient[22][2] = 0.05f;
+    MaterialAmbient[22][3] = 1.0f;
+
+    MaterialDiffuse[22][0] = 0.5f;
+    MaterialDiffuse[22][1] = 0.5f;
+    MaterialDiffuse[22][2] = 0.5f;
+    MaterialDiffuse[22][3] = 1.0f;
+
+    MaterialSpecular[22][0] = 0.7f;
+    MaterialSpecular[22][1] = 0.7f;
+    MaterialSpecular[22][2] = 0.7f;
+    MaterialSpecular[22][3] = 1.0f;
+
+    MaterialShininess[22] = 0.078125f * 128.0f;
+
+    //material 6 : yellow
+    MaterialAmbient[23][0] = 0.05f;
+    MaterialAmbient[23][1] = 0.05f;
+    MaterialAmbient[23][2] = 0.0f;
+    MaterialAmbient[23][3] = 1.0f;
+
+    MaterialDiffuse[23][0] = 0.5f;
+    MaterialDiffuse[23][1] = 0.5f;
+    MaterialDiffuse[23][2] = 0.4f;
+    MaterialDiffuse[23][3] = 1.0f;
+
+    MaterialSpecular[23][0] = 0.7f;
+    MaterialSpecular[23][1] = 0.7f;
+    MaterialSpecular[23][2] = 0.04f;
+    MaterialSpecular[23][3] = 1.0f;
+
+    MaterialShininess[23] = 0.078125f * 128.0f;
+
+}
+
+void setViewports(int x, int y, int width, int height)
+{
+    if(height == 0)
+        height = 1;
+
+    glViewport(x, y, (GLsizei)width, (GLsizei)height);
+
+    perspectiveProjectionMatrix = vmath::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+}
+
 -(void)reshape
 {
     //code
@@ -717,7 +1177,7 @@ int main(int argc, const char* argv[])
 
 			viewMatrix = vmath::mat4::identity();;
 			modelMatrix = vmath::mat4::identity();;
-			ProjectionMatrix = vmath::mat4::identity();
+			projectionMatrix = vmath::mat4::identity();
 			translationMatrix = vmath::mat4::identity();
 
 			translationMatrix = vmath::translate(0.0f, 0.0f, -2.0f);
@@ -977,19 +1437,19 @@ int main(int argc, const char* argv[])
     CGLFlushDrawable((CGLContextObj)[[self openGLContext]CGLContextObj]);
     CGLUnlockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
 
-    rotationAngleX = rotationAngleX + 0.05f;
+    rotationAngleX = rotationAngleX + 0.5f;
 	if (rotationAngleX >= 360.0f)
 	{
 		rotationAngleX = 0.0f;
 	}
 
-	rotationAngleY = rotationAngleY + 0.05f;
+	rotationAngleY = rotationAngleY + 0.5f;
 	if (rotationAngleY >= 360.0f)
 	{
 		rotationAngleY = 0.0f;
 	}
 
-	rotationAngleZ = rotationAngleZ + 0.05f;
+	rotationAngleZ = rotationAngleZ + 0.5f;
 	if (rotationAngleZ >= 360.0f)
 	{
 		rotationAngleZ = 0.0f;
@@ -1157,463 +1617,4 @@ CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *
 }
 
 
-void setMaterialSphere(void)
-{
-	//material 1 : Emerald
-	MaterialAmbient[0][0] = 0.0215f;
-	MaterialAmbient[0][1] = 0.1745f;
-	MaterialAmbient[0][2] = 0.0215f;
-	MaterialAmbient[0][3] = 1.0f;
 
-	MaterialDiffuse[0][0] = 0.07568f;
-	MaterialDiffuse[0][1] = 0.61424f;
-	MaterialDiffuse[0][2] = 0.07568f;
-	MaterialDiffuse[0][3] = 1.0f;
-
-	MaterialSpecular[0][0] = 0.633f;
-	MaterialSpecular[0][1] = 0.727811f;
-	MaterialSpecular[0][2] = 0.633f;
-	MaterialSpecular[0][3] = 1.0f;
-
-	MaterialShininess[0] = 0.6f * 128.0f;
-
-	//material 2: Jade
-	MaterialAmbient[1][0] = 0.135f;
-	MaterialAmbient[1][1] = 0.225f;
-	MaterialAmbient[1][2] = 0.1575f;
-	MaterialAmbient[1][3] = 1.0f;
-
-	MaterialDiffuse[1][0] = 0.54f;
-	MaterialDiffuse[1][1] = 0.89f;
-	MaterialDiffuse[1][2] = 0.63f;
-	MaterialDiffuse[1][3] = 1.0f;
-
-	MaterialSpecular[1][0] = 0.316228f;
-	MaterialSpecular[1][1] = 0.316228f;
-	MaterialSpecular[1][2] = 0.316228f;
-	MaterialSpecular[1][3] = 1.0f;
-
-	MaterialShininess[1] = 0.1f * 128.0f;
-
-	//material 3 : Obsidian
-	MaterialAmbient[2][0] = 0.05375f;
-	MaterialAmbient[2][1] = 0.05f;
-	MaterialAmbient[2][2] = 0.06625f;
-	MaterialAmbient[2][3] = 1.0f;
-
-	MaterialDiffuse[2][0] = 0.18275f;
-	MaterialDiffuse[2][1] = 0.17f;
-	MaterialDiffuse[2][2] = 0.22525f;
-	MaterialDiffuse[2][3] = 1.0f;
-
-	MaterialSpecular[2][0] = 0.332741f;
-	MaterialSpecular[2][1] = 0.328634f;
-	MaterialSpecular[2][2] = 0.346435f;
-	MaterialSpecular[2][3] = 1.0f;
-
-	MaterialShininess[2] = 0.3f * 128.0f;
-
-
-	//material 4 : Pearl
-	MaterialAmbient[3][0] = 0.25f;
-	MaterialAmbient[3][1] = 0.20725f;
-	MaterialAmbient[3][2] = 0.20725f;
-	MaterialAmbient[3][3] = 1.0f;
-
-	MaterialDiffuse[3][0] = 1.0f;
-	MaterialDiffuse[3][1] = 0.829f;
-	MaterialDiffuse[3][2] = 0.829f;
-	MaterialDiffuse[3][3] = 1.0f;
-
-	MaterialSpecular[3][0] = 0.296648f;
-	MaterialSpecular[3][1] = 0.296648f;
-	MaterialSpecular[3][2] = 0.296648f;
-	MaterialSpecular[3][3] = 1.0f;
-
-	MaterialShininess[3] = 0.088f * 128.0f;
-
-	//material 5 : Ruby
-
-	MaterialAmbient[4][0] = 0.1745f;
-	MaterialAmbient[4][1] = 0.01175f;
-	MaterialAmbient[4][2] = 0.01175f;
-	MaterialAmbient[4][3] = 1.0f;
-
-	MaterialDiffuse[4][0] = 0.61424f;
-	MaterialDiffuse[4][1] = 0.04136f;
-	MaterialDiffuse[4][2] = 0.04136f;
-	MaterialDiffuse[4][3] = 1.0f;
-
-	MaterialSpecular[4][0] = 0.727811f;
-	MaterialSpecular[4][1] = 0.626959f;
-	MaterialSpecular[4][2] = 0.626959f;
-	MaterialSpecular[4][3] = 1.0f;
-
-	MaterialShininess[4] = 0.6f * 128.0f;
-
-	//material 6 : Turquoise
-
-	MaterialAmbient[5][0] = 0.1f;
-	MaterialAmbient[5][1] = 0.18725f;
-	MaterialAmbient[5][2] = 0.1745f;
-	MaterialAmbient[5][3] = 1.0f;
-
-	MaterialDiffuse[5][0] = 0.396f;
-	MaterialDiffuse[5][1] = 0.74151f;
-	MaterialDiffuse[5][2] = 0.69102f;
-	MaterialDiffuse[5][3] = 1.0f;
-
-	MaterialSpecular[5][0] = 0.297254f;
-	MaterialSpecular[5][1] = 0.30829f;
-	MaterialSpecular[5][2] = 0.306678f;
-	MaterialSpecular[5][3] = 1.0f;
-
-	MaterialShininess[5] = 0.1f * 128.0f;
-
-	//---------------COLUMN 2 : METAL -----------------------------
-	//material 1 : Brass
-	MaterialAmbient[6][0] = 0.329412f;
-	MaterialAmbient[6][1] = 0.223529f;
-	MaterialAmbient[6][2] = 0.027451f;
-	MaterialAmbient[6][3] = 1.0f;
-
-	MaterialDiffuse[6][0] = 0.780392f;
-	MaterialDiffuse[6][1] = 0.568627f;
-	MaterialDiffuse[6][2] = 0.113725f;
-	MaterialDiffuse[6][3] = 1.0f;
-
-	MaterialSpecular[6][0] = 0.992157f;
-	MaterialSpecular[6][1] = 0.941176f;
-	MaterialSpecular[6][2] = 0.807843f;
-	MaterialSpecular[6][3] = 1.0f;
-
-	MaterialShininess[6] = 0.21794872f * 128.0f;
-
-	//material  2 : Bronze
-	MaterialAmbient[7][0] = 0.2125f;
-	MaterialAmbient[7][1] = 0.1275f;
-	MaterialAmbient[7][2] = 0.054f;
-	MaterialAmbient[7][3] = 1.0f;
-
-	MaterialDiffuse[7][0] = 0.714f;
-	MaterialDiffuse[7][1] = 0.4284f;
-	MaterialDiffuse[7][2] = 0.18144f;
-	MaterialDiffuse[7][3] = 1.0f;
-
-	MaterialSpecular[7][0] = 0.393548f;
-	MaterialSpecular[7][1] = 0.271906f;
-	MaterialSpecular[7][2] = 0.166721f;
-	MaterialSpecular[7][3] = 1.0f;
-
-	MaterialShininess[7] = 0.2f * 128.0f;
-
-	//material 3 : Chrome
-	MaterialAmbient[8][0] = 0.25f;
-	MaterialAmbient[8][1] = 0.25f;
-	MaterialAmbient[8][2] = 0.25f;
-	MaterialAmbient[8][3] = 1.0f;
-
-	MaterialDiffuse[8][0] = 0.4f;
-	MaterialDiffuse[8][1] = 0.4f;
-	MaterialDiffuse[8][2] = 0.4f;
-	MaterialDiffuse[8][3] = 1.0f;
-
-	MaterialSpecular[8][0] = 0.774597f;
-	MaterialSpecular[8][1] = 0.774597f;
-	MaterialSpecular[8][2] = 0.774597f;
-	MaterialSpecular[8][3] = 1.0f;
-
-	MaterialShininess[8] = 0.6f * 128.0f;
-
-	//material 4 : Copper
-	MaterialAmbient[9][0] = 0.19125f;
-	MaterialAmbient[9][1] = 0.0735f;
-	MaterialAmbient[9][2] = 0.0225f;
-	MaterialAmbient[9][3] = 1.0f;
-
-	MaterialDiffuse[9][0] = 0.7038f;
-	MaterialDiffuse[9][1] = 0.27048f;
-	MaterialDiffuse[9][2] = 0.0828f;
-	MaterialDiffuse[9][3] = 1.0f;
-
-	MaterialSpecular[9][0] = 0.256777f;
-	MaterialSpecular[9][1] = 0.1376222f;
-	MaterialSpecular[9][2] = 0.086014f;
-	MaterialSpecular[9][3] = 1.0f;
-
-	MaterialShininess[9] = 0.1f * 128.0f;
-
-	//material 5 : Gold
-	MaterialAmbient[10][0] = 0.24725f;
-	MaterialAmbient[10][1] = 0.1995f;
-	MaterialAmbient[10][2] = 0.0745f;
-	MaterialAmbient[10][3] = 1.0f;
-
-	MaterialDiffuse[10][0] = 0.75164f;
-	MaterialDiffuse[10][1] = 0.60648f;
-	MaterialDiffuse[10][2] = 0.22648f;
-	MaterialDiffuse[10][3] = 1.0f;
-
-	MaterialSpecular[10][0] = 0.628281f;
-	MaterialSpecular[10][1] = 0.555802f;
-	MaterialSpecular[10][2] = 0.366065f;
-	MaterialSpecular[10][3] = 1.0f;
-
-	MaterialShininess[10] = 0.4f * 128.0f;
-
-	//material 6 : Silver
-	MaterialAmbient[11][0] = 0.19225f;
-	MaterialAmbient[11][1] = 0.19225f;
-	MaterialAmbient[11][2] = 0.19225f;
-	MaterialAmbient[11][3] = 1.0f;
-
-	MaterialDiffuse[11][0] = 0.50754f;
-	MaterialDiffuse[11][1] = 0.50754f;
-	MaterialDiffuse[11][2] = 0.50754f;
-	MaterialDiffuse[11][3] = 1.0f;
-
-	MaterialSpecular[11][0] = 0.508273f;
-	MaterialSpecular[11][1] = 0.508273f;
-	MaterialSpecular[11][2] = 0.508273f;
-	MaterialSpecular[11][3] = 1.0f;
-
-	MaterialShininess[11] = 0.4f * 128.0f;
-
-	//---------------COLUMN 3 : PLASTIC -----------------------------
-	//material 1 : Black
-
-	MaterialAmbient[12][0] = 0.0f;
-	MaterialAmbient[12][1] = 0.0f;
-	MaterialAmbient[12][2] = 0.0f;
-	MaterialAmbient[12][3] = 1.0f;
-
-	MaterialDiffuse[12][0] = 0.0f;
-	MaterialDiffuse[12][1] = 0.0f;
-	MaterialDiffuse[12][2] = 0.0f;
-	MaterialDiffuse[12][3] = 1.0f;
-
-	MaterialSpecular[12][0] = 0.50f;
-	MaterialSpecular[12][1] = 0.50f;
-	MaterialSpecular[12][2] = 0.50f;
-	MaterialSpecular[12][3] = 1.0f;
-
-	MaterialShininess[12] = 0.25f * 128.0f;
-
-	//material  2 : Cyan
-	MaterialAmbient[13][0] = 0.0f;
-	MaterialAmbient[13][1] = 0.1f;
-	MaterialAmbient[13][2] = 0.06f;
-	MaterialAmbient[13][3] = 1.0f;
-
-	MaterialDiffuse[13][0] = 0.0f;
-	MaterialDiffuse[13][1] = 0.50980329f;
-	MaterialDiffuse[13][2] = 0.50980329f;
-	MaterialDiffuse[13][3] = 1.0f;
-
-	MaterialSpecular[13][0] = 0.50196078f;
-	MaterialSpecular[13][1] = 0.50196078f;
-	MaterialSpecular[13][2] = 0.50196078f;
-	MaterialSpecular[13][3] = 1.0f;
-
-	MaterialShininess[13] = 0.25f * 128.0f;
-
-	//material 3 : Green
-	MaterialAmbient[14][0] = 0.0f;
-	MaterialAmbient[14][1] = 0.0f;
-	MaterialAmbient[14][2] = 0.0f;
-	MaterialAmbient[14][3] = 1.0f;
-
-	MaterialDiffuse[14][0] = 0.1f;
-	MaterialDiffuse[14][1] = 0.35f;
-	MaterialDiffuse[14][2] = 0.1f;
-	MaterialDiffuse[14][3] = 1.0f;
-
-
-	MaterialSpecular[14][0] = 0.45f;
-	MaterialSpecular[14][1] = 0.55f;
-	MaterialSpecular[14][2] = 0.45f;
-	MaterialSpecular[14][3] = 1.0f;
-
-	MaterialShininess[14] = 0.25f * 128.0f;
-
-	//material 4 : red
-	MaterialAmbient[15][0] = 0.0f;
-	MaterialAmbient[15][1] = 0.0f;
-	MaterialAmbient[15][2] = 0.0f;
-	MaterialAmbient[15][3] = 1.0f;
-
-	MaterialDiffuse[15][0] = 0.5f;
-	MaterialDiffuse[15][1] = 0.0f;
-	MaterialDiffuse[15][2] = 0.0f;
-	MaterialDiffuse[15][3] = 1.0f;
-
-	MaterialSpecular[15][0] = 0.7f;
-	MaterialSpecular[15][1] = 0.6f;
-	MaterialSpecular[15][2] = 0.6f;
-	MaterialSpecular[15][3] = 1.0f;
-
-	MaterialShininess[15] = 0.25f * 128.0f;
-
-	//material 5 : white
-	MaterialAmbient[16][0] = 0.0f;
-	MaterialAmbient[16][1] = 0.0f;
-	MaterialAmbient[16][2] = 0.0f;
-	MaterialAmbient[16][3] = 1.0f;
-
-	MaterialDiffuse[16][0] = 0.55f;
-	MaterialDiffuse[16][1] = 0.55f;
-	MaterialDiffuse[16][2] = 0.55f;
-	MaterialDiffuse[16][3] = 1.0f;
-
-	MaterialSpecular[16][0] = 0.70f;
-	MaterialSpecular[16][1] = 0.70f;
-	MaterialSpecular[16][2] = 0.70f;
-	MaterialSpecular[16][3] = 1.0f;
-
-	MaterialShininess[16] = 0.4f * 128.0f;
-
-	//material 6 : yellow
-	MaterialAmbient[17][0] = 0.0f;
-	MaterialAmbient[17][1] = 0.0f;
-	MaterialAmbient[17][2] = 0.0f;
-	MaterialAmbient[17][3] = 1.0f;
-
-	MaterialDiffuse[17][0] = 0.5f;
-	MaterialDiffuse[17][1] = 0.5f;
-	MaterialDiffuse[17][2] = 0.0f;
-	MaterialDiffuse[17][3] = 1.0f;
-
-	MaterialSpecular[17][0] = 0.60f;
-	MaterialSpecular[17][1] = 0.60f;
-	MaterialSpecular[17][2] = 0.50f;
-	MaterialSpecular[17][3] = 1.0f;
-
-	MaterialShininess[17] = 0.35f * 128.0f;
-
-
-	//---------------COLUMN 4 : RUBBER -----------------------------
-	//material 1 : Black
-	MaterialAmbient[18][0] = 0.02f;
-	MaterialAmbient[18][1] = 0.02f;
-	MaterialAmbient[18][2] = 0.02f;
-	MaterialAmbient[18][3] = 1.0f;
-
-	MaterialDiffuse[18][0] = 0.01f;
-	MaterialDiffuse[18][1] = 0.01f;
-	MaterialDiffuse[18][2] = 0.01f;
-	MaterialDiffuse[18][3] = 1.0f;
-
-
-	MaterialSpecular[18][0] = 0.4f;
-	MaterialSpecular[18][1] = 0.4f;
-	MaterialSpecular[18][2] = 0.4f;
-	MaterialSpecular[18][3] = 1.0f;
-
-	MaterialShininess[18] = 0.078125f * 128.0f;
-
-	//material  2 : Cyan
-	MaterialAmbient[19][0] = 0.0f;
-	MaterialAmbient[19][1] = 0.05f;
-	MaterialAmbient[19][2] = 0.05f;
-	MaterialAmbient[19][3] = 1.0f;
-
-	MaterialDiffuse[19][0] = 0.4f;
-	MaterialDiffuse[19][1] = 0.5f;
-	MaterialDiffuse[19][2] = 0.5f;
-	MaterialDiffuse[19][3] = 1.0f;
-
-	MaterialSpecular[19][0] = 0.04f;
-	MaterialSpecular[19][1] = 0.7f;
-	MaterialSpecular[19][2] = 0.7f;
-	MaterialSpecular[19][3] = 1.0f;
-
-	MaterialShininess[19] = 0.078125f * 128.0f;
-
-	//material 3 : Green
-	MaterialAmbient[20][0] = 0.0f;
-	MaterialAmbient[20][1] = 0.05f;
-	MaterialAmbient[20][2] = 0.0f;
-	MaterialAmbient[20][3] = 1.0f;
-
-	MaterialDiffuse[20][0] = 0.4f;
-	MaterialDiffuse[20][1] = 0.5f;
-	MaterialDiffuse[20][2] = 0.4f;
-	MaterialDiffuse[20][3] = 1.0f;
-
-	MaterialSpecular[20][0] = 0.04f;
-	MaterialSpecular[20][1] = 0.7f;
-	MaterialSpecular[20][2] = 0.04f;
-	MaterialSpecular[20][3] = 1.0f;
-
-	MaterialShininess[20] = 0.078125f * 128.0f;
-
-	//material 4 : red
-	MaterialAmbient[21][0] = 0.05f;
-	MaterialAmbient[21][1] = 0.0f;
-	MaterialAmbient[21][2] = 0.0f;
-	MaterialAmbient[21][3] = 1.0f;
-
-	MaterialDiffuse[21][0] = 0.5f;
-	MaterialDiffuse[21][1] = 0.4f;
-	MaterialDiffuse[21][2] = 0.4f;
-	MaterialDiffuse[21][3] = 1.0f;
-
-	MaterialSpecular[21][0] = 0.7f;
-	MaterialSpecular[21][1] = 0.04f;
-	MaterialSpecular[21][2] = 0.04f;
-	MaterialSpecular[21][3] = 1.0f;
-
-	MaterialShininess[21] = 0.078125f * 128.0f;
-
-	//material 5 : white
-	MaterialAmbient[22][0] = 0.05f;
-	MaterialAmbient[22][1] = 0.05f;
-	MaterialAmbient[22][2] = 0.05f;
-	MaterialAmbient[22][3] = 1.0f;
-
-	MaterialDiffuse[22][0] = 0.5f;
-	MaterialDiffuse[22][1] = 0.5f;
-	MaterialDiffuse[22][2] = 0.5f;
-	MaterialDiffuse[22][3] = 1.0f;
-
-	MaterialSpecular[22][0] = 0.7f;
-	MaterialSpecular[22][1] = 0.7f;
-	MaterialSpecular[22][2] = 0.7f;
-	MaterialSpecular[22][3] = 1.0f;
-
-	MaterialShininess[22] = 0.078125f * 128.0f;
-
-	//material 6 : yellow
-	MaterialAmbient[23][0] = 0.05f;
-	MaterialAmbient[23][1] = 0.05f;
-	MaterialAmbient[23][2] = 0.0f;
-	MaterialAmbient[23][3] = 1.0f;
-
-	MaterialDiffuse[23][0] = 0.5f;
-	MaterialDiffuse[23][1] = 0.5f;
-	MaterialDiffuse[23][2] = 0.4f;
-	MaterialDiffuse[23][3] = 1.0f;
-
-	MaterialSpecular[23][0] = 0.7f;
-	MaterialSpecular[23][1] = 0.7f;
-	MaterialSpecular[23][2] = 0.04f;
-	MaterialSpecular[23][3] = 1.0f;
-
-	MaterialShininess[23] = 0.078125f * 128.0f;
-
-}
-
-void setViewports(int x, int y, int width, int height)
-{
-	CGLLockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
-    NSRect rect = [self bounds];
-
-    if(height == 0)
-        height = 1;
-
-    glViewport(x, y, (GLsizei)width, (GLsizei)height);
-
-    perspectiveProjectionMatrix = vmath::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
-
-    CGLUnlockContext((CGLContextObj)[[self openGLContext]CGLContextObj]);
-}

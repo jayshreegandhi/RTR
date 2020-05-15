@@ -61,29 +61,29 @@ enum
 
 	GLuint lKeyPressedUniform;
 
-	GLfloat LightAmbient[4];
-	GLfloat LightDiffuse[4];
-	GLfloat LightSpecular[4];
-	GLfloat LightPosition[4];
-
-	GLfloat MaterialAmbient[24][4];
-	GLfloat MaterialDiffuse[24][4];
-	GLfloat MaterialSpecular[24][4];
-	GLfloat MaterialShininess[24];
-
 	bool gbLight;
-
-	GLfloat rotationAngleX;
-	GLfloat rotationAngleY;
-	GLfloat rotationAngleZ;
-
-	GLfloat angleZeroRadian;
-	GLfloat angleOneRadian;
-	GLfloat angleTwoRadian;
 
 	GLint keyPress;
 	GLint gWidth;
 	GLint gHeight;
+
+    GLfloat LightAmbient[4];
+    GLfloat LightDiffuse[4];
+    GLfloat LightSpecular[4];
+    GLfloat LightPosition[4];
+    
+    GLfloat MaterialAmbient[24][4];
+    GLfloat MaterialDiffuse[24][4];
+    GLfloat MaterialSpecular[24][4];
+    GLfloat MaterialShininess[24];
+    
+    GLfloat rotationAngleX;
+    GLfloat rotationAngleY;
+    GLfloat rotationAngleZ;
+    
+    GLfloat angleZeroRadian;
+    GLfloat angleOneRadian;
+    GLfloat angleTwoRadian;
 
     float sphere_vertices[1146];
     float sphere_normals[1146];
@@ -91,9 +91,8 @@ enum
     short sphere_elements[2280];
     int gNumVertices;
     int gNumElements;
-
+    
     vmath::mat4 perspectiveProjectionMatrix;
-
 }
 
 - (id)initWithFrame:(CGRect)frame
@@ -242,7 +241,6 @@ enum
 
                     //free the memory
                     free(szInfoLog);
-
                     [self release];
                 }
             }
@@ -270,7 +268,7 @@ enum
 		"uniform vec3 u_kd;" \
 		"uniform vec3 u_ks;" \
 		"uniform float u_material_shininess;" \
-		"out vec3 phong_ads_light;" \
+		"vec3 phong_ads_light;" \
 		"out vec4 fragColor;" \
 		"void main(void)" \
 		"{" \
@@ -550,7 +548,7 @@ enum
         //glEnable(GL_CULL_FACE);
 
         //set bk color
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(0.25f, 0.25f, 0.25f, 0.25f);
 
         perspectiveProjectionMatrix = vmath::mat4::identity();
 
@@ -603,7 +601,9 @@ enum
 	{
 		for (int y = 0; y < 6; y++)
 		{
-			[self setViewports:x * wid :y * ht :wid :ht];
+            int xcor = x * wid;
+            int ycor = y * ht;
+			[self setViewports:xcor :ycor :wid :ht];
 
 			glUseProgram(shaderProgramObject);
 
@@ -874,19 +874,19 @@ enum
     glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
     [eaglContext presentRenderbuffer:GL_RENDERBUFFER];
 
-    rotationAngleX = rotationAngleX + 0.05f;
+    rotationAngleX = rotationAngleX + 0.5f;
 	if (rotationAngleX >= 360.0f)
 	{
 		rotationAngleX = 0.0f;
 	}
 
-	rotationAngleY = rotationAngleY + 0.05f;
+	rotationAngleY = rotationAngleY + 0.5f;
 	if (rotationAngleY >= 360.0f)
 	{
 		rotationAngleY = 0.0f;
 	}
 
-	rotationAngleZ = rotationAngleZ + 0.05f;
+	rotationAngleZ = rotationAngleZ + 0.5f;
 	if (rotationAngleZ >= 360.0f)
 	{
 		rotationAngleZ = 0.0f;
@@ -899,9 +899,6 @@ enum
     GLint width = 0;
     GLint height = 0;
 
-    gWidth = width;
-    gHeight = height;
-
     glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
 
     [eaglContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
@@ -909,10 +906,14 @@ enum
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
     glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
 
+    gWidth = width;
+    gHeight = height;
+    
     glGenRenderbuffers(1, &depthRenderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+
 
     glViewport(0, 0, width, height);
 
@@ -989,7 +990,6 @@ enum
 
 - (void)dealloc
 {
-    [super dealloc];
 
     if (vbo_element_sphere)
     {
@@ -1085,6 +1085,7 @@ enum
     [eaglContext release];
     eaglContext = nil;
 
+    [super dealloc];
 }
 
 - (void)setMaterialSphere
@@ -1533,31 +1534,14 @@ enum
 
 }
 
--(void)setViewports:(int)x :(int)y :(int)width :(int)height
+-(void)setViewports:(int)x :(int)y :(int)w :(int)h
 {
-    glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
 
-    [eaglContext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+    glViewport(x, y, w, h);
 
-    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &width);
-    glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &height);
-
-    glGenRenderbuffers(1, &depthRenderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
-
-    glViewport(x, y, width, height);
-
-    GLfloat fwidth = (GLfloat)width;
-    GLfloat fheight = (GLfloat)height;
-
-    perspectiveProjectionMatrix = vmath::perspective(45.0f, fwidth / fheight, 0.1f, 100.0f);
-
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-         printf("Failed to create framebuffer object in setViewports()%x\n",glCheckFramebufferStatus(GL_FRAMEBUFFER));
-    }
+    GLfloat fw = (GLfloat)w;
+    GLfloat fh = (GLfloat)h;
+    perspectiveProjectionMatrix = vmath::perspective(45.0f, fw / fh, 0.1f, 100.0f);
 }
 
 @end
