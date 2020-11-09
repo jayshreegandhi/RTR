@@ -1,3 +1,2 @@
-# RTR 18
-
-RTR 18 19
+# Real Time Rendering.
+# Completed under the guidance of Dr. Vijay Gokhale Sir.
